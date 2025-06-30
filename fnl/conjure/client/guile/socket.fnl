@@ -250,21 +250,23 @@
 (fn M.completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
-  (cmpl.get-lexical-variables)
-  (if (and (completions-enabled?) (connected?))
-    (let [code (cmpl.build-completion-request opts.prefix)
-          result-fn
-          (fn [results]
-            (let [cmpl-list (cmpl.format-results results)]
-              ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
-              ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
-              (opts.cb cmpl-list) ; return the list of completions
-              ))
-          ]
-      (a.assoc opts :code code)
-      (a.assoc opts :on-result result-fn)
-      (a.assoc opts :passive? true)
-      (M.eval-str opts))
-    (opts.cb [])))
+  (let [lexical-variables (cmpl.get-lexical-variables)
+        prefix-filter (fn [s] (string.match s (.. "^" (. opts :prefix))))
+        lexical-suggestions (a.filter prefix-filter lexical-variables)]
+    (if (and (completions-enabled?) (connected?))
+      (let [code (cmpl.build-completion-request opts.prefix)
+                 result-fn
+                 (fn [results]
+                   (let [cmpl-list (cmpl.format-results results)]
+                     ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
+                     ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
+                     (opts.cb (a.concat lexical-suggestions cmpl-list)) ; return the list of completions
+                     ))
+                 ]
+        (a.assoc opts :code code)
+        (a.assoc opts :on-result result-fn)
+        (a.assoc opts :passive? true)
+        (M.eval-str opts))
+      (opts.cb lexical-suggestions))))
 
 M

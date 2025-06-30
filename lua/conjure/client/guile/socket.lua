@@ -273,21 +273,27 @@ M["on-filetype"] = function()
   return mapping.buf("GuileDisconnect", cfg({"mapping", "disconnect"}), _40_, {desc = "Disconnect from the REPL"})
 end
 M.completions = function(opts)
-  cmpl["get-lexical-variables"]()
+  local lexical_variables = cmpl["get-lexical-variables"]()
+  local prefix_filter
+  local function _41_(s)
+    return string.match(s, ("^" .. opts.prefix))
+  end
+  prefix_filter = _41_
+  local lexical_suggestions = a.filter(prefix_filter, lexical_variables)
   if (completions_enabled_3f() and connected_3f()) then
     local code = cmpl["build-completion-request"](opts.prefix)
     local result_fn
-    local function _41_(results)
+    local function _42_(results)
       local cmpl_list = cmpl["format-results"](results)
-      return opts.cb(cmpl_list)
+      return opts.cb(a.concat(lexical_suggestions, cmpl_list))
     end
-    result_fn = _41_
+    result_fn = _42_
     a.assoc(opts, "code", code)
     a.assoc(opts, "on-result", result_fn)
     a.assoc(opts, "passive?", true)
     return M["eval-str"](opts)
   else
-    return opts.cb({})
+    return opts.cb(lexical_suggestions)
   end
 end
 return M
