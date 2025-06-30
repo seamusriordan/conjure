@@ -203,6 +203,49 @@
        vim.treesitter.require_language)
    lang))
 
+(fn get-captures-for-node [node opts results]
+  (let [buffer (. opts :buffer)
+        query  (. opts :query)
+        label  (. opts :label)
+        captures (query:iter_captures node 0)]
+    (icollect [id n captures]
+      (let [value (vim.treesitter.get_node_text n buffer)
+            captured-label (. query.captures id)]
+        (when (= captured-label label)
+          (table.insert results value))))))
+
+(fn get-captures-for-top-of-node [node opts results]
+  (let [node-results []
+        child-results []]
+    (get-captures-for-node node opts node-results)
+
+    (each [child (node:iter_children)]
+      (get-captures-for-node child opts child-results))
+
+    (each [_ v (ipairs node-results)]
+      (when (not (a.contains? child-results v))
+        (table.insert results v))))
+  results)
+
+(fn query-through-priors-to-root [node opts results]
+  (let [acc (or results [])
+        parent (node:parent)]
+    (when (not= parent nil)
+      (var next-node node)
+      (while (not= next-node nil)
+        (get-captures-for-top-of-node next-node opts acc)
+        (set next-node (next-node:prev_sibling)))
+      (query-through-priors-to-root parent opts acc))
+    acc))
+
+(fn get-query-captures [lang query label]
+  (let [opts {:buffer (vim.api.nvim_get_current_buf)
+              :query  (vim.treesitter.query.parse lang query)
+              :label  label }
+        node (get-node-at-cursor)
+        results (query-through-priors-to-root node opts)]
+    results))
+
 {: enabled?
  : parse!
  : node->str
@@ -215,8 +258,8 @@
  : leaf?
  : sym?
  : get-leaf
- : get-node-at-cursor
  : node-surrounded-by-form-pair-chars?
  : node-prefixed-by-chars?
  : get-form
- : add-language}
+ : add-language
+ : get-query-captures}
