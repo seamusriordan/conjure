@@ -46,6 +46,7 @@ local locals_query = "\n  (list \n    . (symbol) @_d\n    . (list\n        [\n  
 local function get_locals_for_node(node, opts, results)
   local buffer = opts.buffer
   local query = opts.query
+  local label = opts.label
   local captures = query:iter_captures(node, 0)
   local tbl_21_ = {}
   local i_22_ = 0
@@ -53,9 +54,8 @@ local function get_locals_for_node(node, opts, results)
     local val_23_
     do
       local value = vim.treesitter.get_node_text(n, buffer)
-      local label = query.captures[id]
-      log.append({("found " .. a["pr-str"](vim.treesitter.get_node_text(n, buffer))), a["pr-str"](query.captures[id])})
-      if (label == "local") then
+      local captured_label = query.captures[id]
+      if (captured_label == label) then
         val_23_ = table.insert(results, value)
       else
         val_23_ = nil
@@ -69,28 +69,42 @@ local function get_locals_for_node(node, opts, results)
   end
   return tbl_21_
 end
+local function get_locals_for_top_of_node(node, opts, results)
+  do
+    local node_results = {}
+    local child_results = {}
+    get_locals_for_node(node, opts, node_results)
+    for child in node:iter_children() do
+      get_locals_for_node(child, opts, child_results)
+    end
+    for _, v in ipairs(node_results) do
+      if not a["contains?"](child_results, v) then
+        table.insert(results, v)
+      else
+      end
+    end
+  end
+  return results
+end
 local function query_through_priors_to_root(node, opts, results)
   local acc = (results or {})
   local parent = node:parent()
-  log.append({a["pr-str"](acc)})
   if (parent ~= nil) then
     local next_node = node
     while (next_node ~= nil) do
-      get_locals_for_node(next_node, opts, acc)
+      get_locals_for_top_of_node(next_node, opts, acc)
       next_node = next_node:prev_sibling()
-      log.append({"next prior sibling ", a["pr-str"](next_node)})
     end
-    log.append({"parent ", a["pr-str"](parent)})
     query_through_priors_to_root(parent, opts, acc)
   else
   end
   return acc
 end
 M["get-lexical-variables"] = function()
-  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse("scheme", locals_query)}
+  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse("scheme", locals_query), label = "local"}
   local node = ts["get-node-at-cursor"]()
   local results = query_through_priors_to_root(node, opts)
-  log.append({"FINAL ", a["pr-str"](results)})
+  log.dbg({"Found lexical symbols ", a["pr-str"](results)})
   return results
 end
 return M
