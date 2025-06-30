@@ -3,6 +3,7 @@
 (local client (autoload :conjure.client))
 (local config (autoload :conjure.config))
 (local text (autoload :conjure.text))
+(local log (autoload :conjure.log))
 
 ;; Initially based on https://github.com/savq/conjure-julia <3
 
@@ -204,6 +205,8 @@
    lang))
 
 (fn get-captures-for-node [node opts results]
+      (log.append ["catchos"])
+      (log.append [(a.pr-str (. opts :query))])
   (let [buffer (. opts :buffer)
         query  (. opts :query)
         labels (. opts :labels)
@@ -211,7 +214,7 @@
     (icollect [id n captures]
       (let [value (vim.treesitter.get_node_text n buffer)
             captured-label (. query.captures id)]
-        (when (a.contains? labels captured-label)
+        (when true
           (table.insert results value))))))
 
 (fn get-captures-for-top-of-node [node opts results]
@@ -221,6 +224,9 @@
 
     (each [child (node:iter_children)]
       (get-captures-for-node child opts child-results))
+    
+      (log.append ["node " (a.pr-str node-results)])
+      (log.append ["childnode " (a.pr-str child-results)])
 
     (each [_ v (ipairs node-results)]
       (when (not (a.contains? child-results v))
@@ -246,6 +252,16 @@
         results (query-through-priors-to-root node opts)]
     results))
 
+(fn get-file-query-captures [lang query-file labels]
+  (log.append ["start"])
+  (let [opts {:buffer (vim.api.nvim_get_current_buf)
+              :query  (vim.treesitter.query.get lang query-file)
+              :labels labels }
+        node (get-node-at-cursor)
+        results (query-through-priors-to-root node opts)]
+  (log.append ["RESULTS " (a.pr-str results)])
+   results))
+
 {: enabled?
  : parse!
  : node->str
@@ -262,4 +278,6 @@
  : node-prefixed-by-chars?
  : get-form
  : add-language
- : get-query-captures}
+ : get-query-captures
+ : get-file-query-captures
+}

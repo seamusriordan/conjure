@@ -8,6 +8,7 @@
 (local str (autoload :conjure.aniseed.string))
 (local text (autoload :conjure.text))
 (local ts (autoload :conjure.tree-sitter))
+(local cmpl (autoload :conjure.client.common-lisp.completions))
 
 (local buf-suffix ".lisp")
 (local comment-prefix "; ")
@@ -306,8 +307,14 @@
 (fn completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
-  (if (connected?) 
-    (let [code (.. "(swank:simple-completions " (a.pr-str opts.prefix) " " (a.pr-str opts.context) ")")
+
+  (let [lexical-variables (cmpl.get-lexical-variables)
+         prefix-pattern (.. "^" (. opts :prefix))
+         prefix-filter (fn [s] (string.match s prefix-pattern))
+         lexical-suggestions (a.filter prefix-filter lexical-variables)]
+
+    (if (connected?) 
+      (let [code (.. "(swank:simple-completions " (a.pr-str opts.prefix) " " (a.pr-str opts.context) ")")
           format-for-cmpl
           (fn [rs]
             (let [cmpls (parse-separated-list rs)
@@ -319,14 +326,14 @@
             (let [cmpl-list (format-for-cmpl results)]
               ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
               ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
-              (opts.cb cmpl-list) ; return the list of completions
+              (opts.cb (a.concat lexical-suggestions cmpl-list)) ; return the list of completions
               ))
           ]
-      (a.assoc opts :code code)
-      (a.assoc opts :on-result result-fn)
-      (a.assoc opts :passive? true)
-      (eval-str opts))
-    (opts.cb [])))
+        (a.assoc opts :code code)
+        (a.assoc opts :on-result result-fn)
+        (a.assoc opts :passive? true)
+        (eval-str opts))
+      (opts.cb lexical-suggestions))))
 
 {: buf-suffix
  : comment-prefix

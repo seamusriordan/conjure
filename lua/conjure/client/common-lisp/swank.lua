@@ -10,6 +10,7 @@ local remote = autoload("conjure.remote.swank")
 local str = autoload("conjure.aniseed.string")
 local text = autoload("conjure.text")
 local ts = autoload("conjure.tree-sitter")
+local cmpl = autoload("conjure.client.common-lisp.completions")
 local buf_suffix = ".lisp"
 local comment_prefix = "; "
 local form_node_3f = ts["node-surrounded-by-form-pair-chars?"]
@@ -284,28 +285,36 @@ local function on_exit()
   return disconnect()
 end
 local function completions(opts)
+  local lexical_variables = cmpl["get-lexical-variables"]()
+  local prefix_pattern = ("^" .. opts.prefix)
+  local prefix_filter
+  local function _41_(s)
+    return string.match(s, prefix_pattern)
+  end
+  prefix_filter = _41_
+  local lexical_suggestions = a.filter(prefix_filter, lexical_variables)
   if connected_3f() then
     local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
     local format_for_cmpl
-    local function _41_(rs)
+    local function _42_(rs)
       local cmpls = parse_separated_list(rs)
       local last = table.remove(cmpls)
       table.insert(cmpls, 1, last)
       return cmpls
     end
-    format_for_cmpl = _41_
+    format_for_cmpl = _42_
     local result_fn
-    local function _42_(results)
+    local function _43_(results)
       local cmpl_list = format_for_cmpl(results)
-      return opts.cb(cmpl_list)
+      return opts.cb(a.concat(lexical_suggestions, cmpl_list))
     end
-    result_fn = _42_
+    result_fn = _43_
     a.assoc(opts, "code", code)
     a.assoc(opts, "on-result", result_fn)
     a.assoc(opts, "passive?", true)
     return eval_str(opts)
   else
-    return opts.cb({})
+    return opts.cb(lexical_suggestions)
   end
 end
 return {["buf-suffix"] = buf_suffix, ["comment-prefix"] = comment_prefix, ["form-node?"] = form_node_3f, context = context, disconnect = disconnect, connect = connect, ["parse-result"] = parse_result, ["eval-str"] = eval_str, ["doc-str"] = doc_str, ["eval-file"] = eval_file, ["on-filetype"] = on_filetype, ["on-load"] = on_load, ["on-exit"] = on_exit, completions = completions}
