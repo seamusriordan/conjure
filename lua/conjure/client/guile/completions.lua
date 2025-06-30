@@ -42,18 +42,24 @@ M["format-results"] = function(rs)
   table.insert(cmpls, 1, last)
   return cmpls
 end
-local locals_query = "\n  (symbol) @variable\n  "
+local locals_query = "\n  (list \n    . (symbol) @_d\n    . (list\n        [\n         (symbol) @local\n         (list (symbol) @local) \n         ])\n    (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))\n\n  (list \n    . (symbol) @_d\n    . (symbol) @local\n    (#any-of? @_d \"define\" \"define-syntax\"))\n\n  (list \n    . (symbol) @_d\n    . (list \n        (list . (symbol) @local))\n    (#any-of? @_d \"let\" \"let*\" \"let-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"letrec-syntax\"))\n\n  ;; named let\n  (list \n    . (symbol) @_d\n    . (symbol) @local\n    . (list \n        (list . (symbol) @local))\n    (#any-of? @_d \"let\" \"let*\" \"letrec\"))\n\n  (list\n    . (symbol) @_do\n    . (list\n        (list . (symbol) @local)\n        )\n    (#any-of? @_do \"do\"))\n  "
 local function get_locals_for_node(node, opts, results)
   local buffer = opts.buffer
   local query = opts.query
   local captures = query:iter_captures(node, 0)
   local tbl_21_ = {}
   local i_22_ = 0
-  for _, v in captures do
+  for id, n in captures do
     local val_23_
     do
-      table.insert(results, vim.treesitter.get_node_text(v, buffer))
-      val_23_ = log.append({("found " .. a["pr-str"](vim.treesitter.get_node_text(v, buffer)))})
+      local value = vim.treesitter.get_node_text(n, buffer)
+      local label = query.captures[id]
+      log.append({("found " .. a["pr-str"](vim.treesitter.get_node_text(n, buffer))), a["pr-str"](query.captures[id])})
+      if (label == "local") then
+        val_23_ = table.insert(results, value)
+      else
+        val_23_ = nil
+      end
     end
     if (nil ~= val_23_) then
       i_22_ = (i_22_ + 1)
@@ -65,20 +71,18 @@ local function get_locals_for_node(node, opts, results)
 end
 local function query_through_priors_to_root(node, opts, results)
   local acc = (results or {})
+  local parent = node:parent()
   log.append({a["pr-str"](acc)})
-  local next_node = node:prev_sibling()
-  while (next_node ~= nil) do
-    get_locals_for_node(next_node, opts, acc)
-    next_node = next_node:prev_sibling()
-    log.append({"next prior sibling ", a["pr-str"](next_node)})
-  end
-  do
-    local parent = node:parent()
-    if (parent ~= nil) then
-      log.append({"parent ", a["pr-str"](parent)})
-      query_through_priors_to_root(parent, opts, acc)
-    else
+  if (parent ~= nil) then
+    local next_node = node
+    while (next_node ~= nil) do
+      get_locals_for_node(next_node, opts, acc)
+      next_node = next_node:prev_sibling()
+      log.append({"next prior sibling ", a["pr-str"](next_node)})
     end
+    log.append({"parent ", a["pr-str"](parent)})
+    query_through_priors_to_root(parent, opts, acc)
+  else
   end
   return acc
 end

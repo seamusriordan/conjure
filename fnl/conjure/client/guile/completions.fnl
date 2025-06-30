@@ -37,7 +37,40 @@
     cmpls))
 
 (local locals-query "
-  (symbol) @variable
+  (list 
+    . (symbol) @_d
+    . (list
+        [
+         (symbol) @local
+         (list (symbol) @local) 
+         ])
+    (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))
+
+  (list 
+    . (symbol) @_d
+    . (symbol) @local
+    (#any-of? @_d \"define\" \"define-syntax\"))
+
+  (list 
+    . (symbol) @_d
+    . (list 
+        (list . (symbol) @local))
+    (#any-of? @_d \"let\" \"let*\" \"let-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"letrec-syntax\"))
+
+  ;; named let
+  (list 
+    . (symbol) @_d
+    . (symbol) @local
+    . (list 
+        (list . (symbol) @local))
+    (#any-of? @_d \"let\" \"let*\" \"letrec\"))
+
+  (list
+    . (symbol) @_do
+    . (list
+        (list . (symbol) @local)
+        )
+    (#any-of? @_do \"do\"))
   ")
 
 (fn get-locals-for-node [node opts results]
@@ -46,25 +79,35 @@
       query (. opts :query)
       captures (query:iter_captures node 0)]
 
-  (icollect [_ v captures]
-    (do
-      (table.insert results (vim.treesitter.get_node_text v buffer))
-      (log.append [(.. "found " (a.pr-str (vim.treesitter.get_node_text v buffer)))])))))
+  (icollect [id n captures]
+    (let [value (vim.treesitter.get_node_text n buffer)
+                  label (. query.captures id)]
+
+        (log.append [
+                     (.. "found " (a.pr-str (vim.treesitter.get_node_text n buffer)))
+                     (a.pr-str (. query.captures id))
+                     ])
+
+        (when (= label "local")
+          (table.insert results value)
+          )
+
+        ))))
 
 (fn query-through-priors-to-root [node opts results]
-  (let [acc (or results [])]
+  (let [acc (or results [])
+        parent (node:parent)]
     (log.append [(a.pr-str acc)])
-    (var next-node (node:prev_sibling))
 
-    (while (~= next-node nil)
-      (get-locals-for-node next-node opts acc)
-      (set next-node (next-node:prev_sibling))
-      (log.append ["next prior sibling " (a.pr-str next-node)]))
+    (when (~= parent nil)
+      (var next-node node)
+      (while (~= next-node nil)
+        (get-locals-for-node next-node opts acc)
+        (set next-node (next-node:prev_sibling))
+        (log.append ["next prior sibling " (a.pr-str next-node)]))
 
-    (let [parent (node:parent)]
-      (when (~= parent nil)
-        (log.append ["parent " (a.pr-str parent)])
-        (query-through-priors-to-root parent opts acc)))
+      (log.append ["parent " (a.pr-str parent)])
+      (query-through-priors-to-root parent opts acc))
     acc))
 
 (fn M.get-lexical-variables
