@@ -69,6 +69,6 @@
   (ts.get-query-captures
     :scheme
     locals-query
-    :local))
+    [:local]))
 
 M

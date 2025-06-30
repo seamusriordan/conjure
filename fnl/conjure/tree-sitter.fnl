@@ -206,12 +206,12 @@
 (fn get-captures-for-node [node opts results]
   (let [buffer (. opts :buffer)
         query  (. opts :query)
-        label  (. opts :label)
+        labels (. opts :labels)
         captures (query:iter_captures node 0)]
     (icollect [id n captures]
       (let [value (vim.treesitter.get_node_text n buffer)
             captured-label (. query.captures id)]
-        (when (= captured-label label)
+        (when (a.contains? labels captured-label)
           (table.insert results value))))))
 
 (fn get-captures-for-top-of-node [node opts results]
@@ -238,10 +238,10 @@
       (query-through-priors-to-root parent opts acc))
     acc))
 
-(fn get-query-captures [lang query label]
+(fn get-query-captures [lang query labels]
   (let [opts {:buffer (vim.api.nvim_get_current_buf)
               :query  (vim.treesitter.query.parse lang query)
-              :label  label }
+              :labels labels }
         node (get-node-at-cursor)
         results (query-through-priors-to-root node opts)]
     results))

@@ -8,6 +8,7 @@
 (local client (autoload :conjure.client))
 (local log (autoload :conjure.log))
 (local ts (autoload :conjure.tree-sitter))
+(local cmpl (autoload :conjure.client.scheme.completions))
 
 (config.merge
   {:client
@@ -151,6 +152,15 @@
 (fn on-exit []
   (stop))
 
+(fn completions [opts]
+  ;(when (not= nil opts)
+  ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
+   (let [all-completions (cmpl.get-completions)
+         prefix-pattern (.. "^" (. opts :prefix))
+         prefix-filter (fn [s] (string.match s prefix-pattern))
+         suggestions (a.filter prefix-filter all-completions)]
+     (opts.cb suggestions)))
+
 {: buf-suffix
  : comment-prefix
  : form-node?
@@ -163,4 +173,5 @@
  : interrupt
  : on-load
  : on-filetype
- : on-exit }
+ : on-exit 
+ : completions}

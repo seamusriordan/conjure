@@ -10,6 +10,7 @@ local mapping = autoload("conjure.mapping")
 local client = autoload("conjure.client")
 local log = autoload("conjure.log")
 local ts = autoload("conjure.tree-sitter")
+local cmpl = autoload("conjure.client.scheme.completions")
 config.merge({client = {scheme = {stdio = {command = "mit-scheme", prompt_pattern = "[%]e][=r]r?o?r?> ", value_prefix_pattern = "^;Value: "}}}})
 if config["get-in"]({"mapping", "enable_defaults"}) then
   config.merge({client = {scheme = {stdio = {mapping = {start = "cs", stop = "cS", interrupt = "ei"}}}}})
@@ -125,4 +126,15 @@ end
 local function on_exit()
   return stop()
 end
-return {["buf-suffix"] = buf_suffix, ["comment-prefix"] = comment_prefix, ["form-node?"] = form_node_3f, unbatch = unbatch, ["format-msg"] = format_msg, ["eval-str"] = eval_str, ["eval-file"] = eval_file, stop = stop, start = start, interrupt = interrupt, ["on-load"] = on_load, ["on-filetype"] = on_filetype, ["on-exit"] = on_exit}
+local function completions(opts)
+  local all_completions = cmpl["get-completions"]()
+  local prefix_pattern = ("^" .. opts.prefix)
+  local prefix_filter
+  local function _20_(s)
+    return string.match(s, prefix_pattern)
+  end
+  prefix_filter = _20_
+  local suggestions = a.filter(prefix_filter, all_completions)
+  return opts.cb(suggestions)
+end
+return {["buf-suffix"] = buf_suffix, ["comment-prefix"] = comment_prefix, ["form-node?"] = form_node_3f, unbatch = unbatch, ["format-msg"] = format_msg, ["eval-str"] = eval_str, ["eval-file"] = eval_file, stop = stop, start = start, interrupt = interrupt, ["on-load"] = on_load, ["on-filetype"] = on_filetype, ["on-exit"] = on_exit, completions = completions}

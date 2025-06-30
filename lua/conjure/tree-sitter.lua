@@ -183,7 +183,7 @@ end
 local function get_captures_for_node(node, opts, results)
   local buffer = opts.buffer
   local query = opts.query
-  local label = opts.label
+  local labels = opts.labels
   local captures = query:iter_captures(node, 0)
   local tbl_21_ = {}
   local i_22_ = 0
@@ -192,7 +192,7 @@ local function get_captures_for_node(node, opts, results)
     do
       local value = vim.treesitter.get_node_text(n, buffer)
       local captured_label = query.captures[id]
-      if (captured_label == label) then
+      if a["contains?"](labels, captured_label) then
         val_23_ = table.insert(results, value)
       else
         val_23_ = nil
@@ -237,8 +237,8 @@ local function query_through_priors_to_root(node, opts, results)
   end
   return acc
 end
-local function get_query_captures(lang, query, label)
-  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse(lang, query), label = label}
+local function get_query_captures(lang, query, labels)
+  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse(lang, query), labels = labels}
   local node = get_node_at_cursor()
   local results = query_through_priors_to_root(node, opts)
   return results
