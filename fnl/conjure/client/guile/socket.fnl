@@ -250,6 +250,7 @@
 (fn M.completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
+  (cmpl.get-lexical-variables)
   (if (and (completions-enabled?) (connected?))
     (let [code (cmpl.build-completion-request opts.prefix)
           result-fn

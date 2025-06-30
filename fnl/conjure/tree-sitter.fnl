@@ -98,6 +98,9 @@
     (or (string.find (node:type) :sym)
         (client.optional-call :symbol-node? node))))
 
+(fn get-node-at-cursor []
+ (ts.get_node_at_cursor) )
+
 (fn get-leaf [node]
   "Return the leaf node under the cursor or nothing at all."
   (parse!)
@@ -212,6 +215,7 @@
  : leaf?
  : sym?
  : get-leaf
+ : get-node-at-cursor
  : node-surrounded-by-form-pair-chars?
  : node-prefixed-by-chars?
  : get-form
