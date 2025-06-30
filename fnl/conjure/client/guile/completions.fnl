@@ -54,7 +54,7 @@
 (fn query-through-priors-to-root [node opts results]
   (let [acc (or results [])]
     (log.append [(a.pr-str acc)])
-    (var next-node node)
+    (var next-node (node:prev_sibling))
 
     (while (~= next-node nil)
       (get-locals-for-node next-node opts acc)
@@ -64,7 +64,7 @@
     (let [parent (node:parent)]
       (when (~= parent nil)
         (log.append ["parent " (a.pr-str parent)])
-        (get-locals-for-node parent opts acc)))
+        (query-through-priors-to-root parent opts acc)))
     acc))
 
 (fn M.get-lexical-variables

@@ -66,7 +66,7 @@ end
 local function query_through_priors_to_root(node, opts, results)
   local acc = (results or {})
   log.append({a["pr-str"](acc)})
-  local next_node = node
+  local next_node = node:prev_sibling()
   while (next_node ~= nil) do
     get_locals_for_node(next_node, opts, acc)
     next_node = next_node:prev_sibling()
@@ -76,7 +76,7 @@ local function query_through_priors_to_root(node, opts, results)
     local parent = node:parent()
     if (parent ~= nil) then
       log.append({"parent ", a["pr-str"](parent)})
-      get_locals_for_node(parent, opts, acc)
+      query_through_priors_to_root(parent, opts, acc)
     else
     end
   end
