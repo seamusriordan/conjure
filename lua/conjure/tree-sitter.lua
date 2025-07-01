@@ -5,7 +5,6 @@ local a = autoload("conjure.nfnl.core")
 local client = autoload("conjure.client")
 local config = autoload("conjure.config")
 local text = autoload("conjure.text")
-local log = autoload("conjure.log")
 local ts
 do
   local ok_3f, x = nil, nil
@@ -182,8 +181,6 @@ local function add_language(lang)
   return (vim.treesitter.language.add or vim.treesitter.language.require_language or vim.treesitter.require_language)(lang)
 end
 local function get_captures_for_node(node, opts, results)
-  log.append({"catchos"})
-  log.append({a["pr-str"](opts.query)})
   local buffer = opts.buffer
   local query = opts.query
   local labels = opts.labels
@@ -195,7 +192,11 @@ local function get_captures_for_node(node, opts, results)
     do
       local value = vim.treesitter.get_node_text(n, buffer)
       local captured_label = query.captures[id]
-      val_23_ = table.insert(results, value)
+      if a["contains?"](labels, captured_label) then
+        val_23_ = table.insert(results, value)
+      else
+        val_23_ = nil
+      end
     end
     if (nil ~= val_23_) then
       i_22_ = (i_22_ + 1)
@@ -213,8 +214,6 @@ local function get_captures_for_top_of_node(node, opts, results)
     for child in node:iter_children() do
       get_captures_for_node(child, opts, child_results)
     end
-    log.append({"node ", a["pr-str"](node_results)})
-    log.append({"childnode ", a["pr-str"](child_results)})
     for _, v in ipairs(node_results) do
       if not a["contains?"](child_results, v) then
         table.insert(results, v)
@@ -229,27 +228,28 @@ local function query_through_priors_to_root(node, opts, results)
   local parent0 = node:parent()
   if (parent0 ~= nil) then
     local next_node = node
+    local labels = {"local.define", "local.bind"}
     while (next_node ~= nil) do
+      opts["labels"] = labels
       get_captures_for_top_of_node(next_node, opts, acc)
       next_node = next_node:prev_sibling()
+      labels = {"local.define"}
     end
     query_through_priors_to_root(parent0, opts, acc)
   else
   end
   return acc
 end
-local function get_query_captures(lang, query, labels)
-  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse(lang, query), labels = labels}
+local function get_query_captures(lang, query)
+  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse(lang, query)}
   local node = get_node_at_cursor()
   local results = query_through_priors_to_root(node, opts)
   return results
 end
-local function get_file_query_captures(lang, query_file, labels)
-  log.append({"start"})
-  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.get(lang, query_file), labels = labels}
+local function get_file_query_captures(lang, query_file)
+  local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.get(lang, query_file)}
   local node = get_node_at_cursor()
   local results = query_through_priors_to_root(node, opts)
-  log.append({"RESULTS ", a["pr-str"](results)})
   return results
 end
 return {["enabled?"] = enabled_3f, ["parse!"] = parse_21, ["node->str"] = node__3estr, ["lisp-comment-node?"] = lisp_comment_node_3f, parent = parent, ["document?"] = document_3f, range = range, ["node->table"] = node__3etable, ["get-root"] = get_root, ["leaf?"] = leaf_3f, ["sym?"] = sym_3f, ["get-leaf"] = get_leaf, ["node-surrounded-by-form-pair-chars?"] = node_surrounded_by_form_pair_chars_3f, ["node-prefixed-by-chars?"] = node_prefixed_by_chars_3f, ["get-form"] = get_form, ["add-language"] = add_language, ["get-query-captures"] = get_query_captures, ["get-file-query-captures"] = get_file_query_captures}

@@ -12,35 +12,42 @@
   (list 
     . (symbol) @_d
     . (list
-        [
-         (symbol) @local
-         (list (symbol) @local) 
-         ]) (#any-of? @_d \"define\" \"define*\" \"lambda\" \"named-lambda\" \"syntax-rules\" \"define-structure\" \"receive\" \"define-record-type\"))
+         . (symbol) @local.define
+         ((symbol) @local.bind)*
+         (list (symbol) @local.bind)*
+      )
+    (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))
 
   (list 
     . (symbol) @_d
-    . (symbol) @local
+    . (symbol) @local.define
     (#any-of? @_d \"define\" \"define-syntax\"))
 
   (list 
-    . (symbol) @_d
+    . (symbol) @_l
     . (list 
-        (list . (symbol) @local))
-    (#any-of? @_d \"let\" \"let*\" \"let-syntax\" \"let*-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"let-rec*\" \"letrec-syntax\" \"fluid-let\" \"and-let*\"))
+        (list . (symbol) @local.bind))
+    (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"letrec\" \"letrec-syntax\"))
+  
+  (list 
+    . (symbol) @_l
+    . (list 
+        (list . (list (symbol) @local.bind)))
+    (#any-of? @_l \"let-values\" \"let*-values\"))
 
   ;; named let
   (list 
-    . (symbol) @_d
-    . (symbol) @local
+    . (symbol) @_l
+    . (symbol) @local.define
     . (list 
-        (list . (symbol) @local))
-    (#any-of? @_d \"let\" \"let*\" \"letrec\" \"let-rec*\"))
+        (list . (symbol) @local.bind))
+    (#any-of? @_l \"let\" \"let*\" \"letrec\"))
 
   (list
     . (symbol) @_do
     . (list
-        (list . (symbol) @local)
-        )
+        (list . (symbol) @local.bind)
+      )
     (#any-of? @_do \"do\"))
   ")
 
@@ -57,10 +64,9 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (. dict dict-key) ]
     (a.concat
-    (ts.get-query-captures
-      :scheme
-      locals-query
-      [:local])
-    built-in-symbols)))
+      (ts.get-query-captures
+        :scheme
+        locals-query)
+      built-in-symbols)))
 
 M

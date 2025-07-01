@@ -32,38 +32,37 @@
     . (symbol) @_d
     . (list
         [
-         (symbol) @local
-         (list (symbol) @local) 
-         ])
+          (symbol) @local.define
+          (list (symbol) @local.bind) 
+        ])
     (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))
 
   (list 
     . (symbol) @_d
-    . (symbol) @local
+    . (symbol) @local.define
     (#any-of? @_d \"define\" \"define-syntax\"))
 
   (list 
-    . (symbol) @_d
+    . (symbol) @_l
     . (list 
-        (list . (symbol) @local))
-    (#any-of? @_d \"let\" \"let*\" \"let-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"letrec-syntax\"))
+        (list . (symbol) @local.bind))
+    (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"letrec-syntax\"))
 
   ;; named let
   (list 
-    . (symbol) @_d
-    . (symbol) @local
+    . (symbol) @_l
+    . (symbol) @local.define
     . (list 
-        (list . (symbol) @local))
-    (#any-of? @_d \"let\" \"let*\" \"letrec\"))
+        (list . (symbol) @local.bind))
+    (#any-of? @_l \"let\" \"let*\" \"letrec\"))
 
   (list
     . (symbol) @_do
     . (list
-        (list . (symbol) @local)
-        )
+        (list . (symbol) @local.bind)
+      )
     (#any-of? @_do \"do\"))
   ")
-
 
 (fn M.get-lexical-variables []
   (ts.get-query-captures
