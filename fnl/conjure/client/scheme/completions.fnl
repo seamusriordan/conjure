@@ -1,10 +1,10 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
-(local a (autoload :conjure.nfnl.core))
 (local ls (autoload :conjure.lexical-search))
 (local dict (autoload :conjure.client.scheme.dict))
 (local log (autoload :conjure.log))
 (local config (autoload :conjure.config))
 (local dict (autoload :conjure.client.scheme.dict))
+(local util (autoload :conjure.util))
 
 (local M (define :conjure.client.scheme.completions))
 
@@ -73,7 +73,7 @@
   (let [stdio-command (config.get-in [:client :scheme :stdio :command])
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (. dict dict-key) ]
-    (a.concat
+    (util.concat-nodup
       (ls.get-query-captures
         :scheme
         M.locals-query)

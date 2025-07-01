@@ -6,12 +6,9 @@
 (local M (define :conjure.client.common-lisp.completions))
 
 (fn M.get-lexical-variables []
-  (ts.get-file-query-captures
+  (ts.get-query-captures
     :commonlisp
     :locals
-    ; [:local.definition.parameter :local.definition.type :local.reference
-    ;  :local.definition.var :local.definition.function :local.definition.import]
-    [:local.scope]
     ))
 
 M

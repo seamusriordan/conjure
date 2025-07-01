@@ -2,6 +2,8 @@
 (local a (autoload :conjure.nfnl.core))
 (local ls (autoload :conjure.lexical-search))
 (local scheme-completions (autoload :conjure.client.scheme.completions))
+(local scheme-dict (autoload :conjure.client.scheme.dict))
+(local util (autoload :conjure.util))
 
 (local M (define :conjure.client.guile.completions))
 
@@ -28,11 +30,11 @@
     (table.insert cmpls 1 last)
     cmpls))
 
-
-(fn M.get-lexical-variables []
-  (ls.get-query-captures
-    :scheme
-    scheme-completions.locals-query
-    [:local]))
+(fn M.get-non-repl-completions []
+  (util.concat-nodup
+    (ls.get-query-captures
+      :scheme
+      scheme-completions.locals-query)
+    (. scheme-dict :guile)))
 
 M

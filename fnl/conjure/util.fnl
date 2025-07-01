@@ -8,5 +8,19 @@
 (fn replace-termcodes [s]
   (vim.api.nvim_replace_termcodes s true false true))
 
+(fn concat-nodup [a b]
+  (let [seen {}
+        result []]
+    (each [_ v (ipairs a)]
+      (when (not (. seen v) )
+        (tset seen (tostring v) true)
+        (table.insert result v)))
+    (each [_ v (ipairs b)]
+      (when (not (. seen v) )
+        (tset seen (tostring v) true)
+        (table.insert result v)))
+    result))
+
 {: wrap-require-fn-call
- : replace-termcodes}
+ : replace-termcodes
+ : concat-nodup }

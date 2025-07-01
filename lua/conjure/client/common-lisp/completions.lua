@@ -7,6 +7,6 @@ local log = autoload("conjure.log")
 local ts = autoload("conjure.tree-sitter")
 local M = define("conjure.client.common-lisp.completions")
 M["get-lexical-variables"] = function()
-  return ts["get-file-query-captures"]("commonlisp", "locals", {"local.scope"})
+  return ts["get-query-captures"]("commonlisp", "locals")
 end
 return M

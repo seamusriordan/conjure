@@ -12,6 +12,7 @@ local str = autoload("conjure.nfnl.string")
 local text = autoload("conjure.text")
 local ts = autoload("conjure.tree-sitter")
 local cmpl = autoload("conjure.client.guile.completions")
+local util = autoload("conjure.util")
 local M = define("conjure.client.guile.socket")
 config.merge({client = {guile = {socket = {pipename = nil, ["host-port"] = nil, ["enable-completions"] = true}}}})
 if config["get-in"]({"mapping", "enable_defaults"}) then
@@ -273,20 +274,20 @@ M["on-filetype"] = function()
   return mapping.buf("GuileDisconnect", cfg({"mapping", "disconnect"}), _40_, {desc = "Disconnect from the REPL"})
 end
 local function generate_completions(opts)
-  local lexical_variables = cmpl["get-lexical-variables"]()
+  local non_repl_completions = cmpl["get-non-repl-completions"]()
   local prefix_pattern = ("^" .. opts.prefix)
   local prefix_filter
   local function _41_(s)
     return string.match(s, prefix_pattern)
   end
   prefix_filter = _41_
-  local lexical_suggestions = a.filter(prefix_filter, lexical_variables)
+  local non_repl_suggestions = a.filter(prefix_filter, non_repl_completions)
   if connected_3f() then
     local code = cmpl["build-completion-request"](opts.prefix)
     local result_fn
     local function _42_(results)
       local cmpl_list = cmpl["format-results"](results)
-      return opts.cb(a.concat(lexical_suggestions, cmpl_list))
+      return opts.cb(util["concat-nodup"](non_repl_suggestions, cmpl_list))
     end
     result_fn = _42_
     a.assoc(opts, "code", code)
@@ -294,7 +295,7 @@ local function generate_completions(opts)
     a.assoc(opts, "passive?", true)
     return M["eval-str"](opts)
   else
-    return opts.cb(lexical_suggestions)
+    return opts.cb(non_repl_suggestions)
   end
 end
 M.completions = function(opts)
