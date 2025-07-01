@@ -3,7 +3,8 @@ local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
-local ts = autoload("conjure.tree-sitter")
+local ls = autoload("conjure.lexical-search")
+local scheme_completions = autoload("conjure.client.scheme.completions")
 local M = define("conjure.client.guile.completions")
 M["guile-repl-completion-code"] = "(use-modules ((ice-9 readline) \n      #:select (apropos-completion-function)\n      #:prefix %conjure:))\n  (define* (%conjure:get-guile-completions prefix #:optional (continued #f))\n      (let ((suggestion (%conjure:apropos-completion-function prefix continued)))\n        (if (not suggestion)\n          '()\n          (cons suggestion (%conjure:get-guile-completions prefix #t)))))"
 M["build-completion-request"] = function(prefix)
@@ -28,8 +29,7 @@ M["format-results"] = function(rs)
   table.insert(cmpls, 1, last)
   return cmpls
 end
-local locals_query = "\n  (list \n    . (symbol) @_d\n    . (list\n        [\n          (symbol) @local.define\n          (list (symbol) @local.bind) \n        ])\n    (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))\n\n  (list \n    . (symbol) @_d\n    . (symbol) @local.define\n    (#any-of? @_d \"define\" \"define-syntax\"))\n\n  (list \n    . (symbol) @_l\n    . (list \n        (list . (symbol) @local.bind))\n    (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"let-values\" \"let*-values\" \"letrec\" \"letrec-syntax\"))\n\n  ;; named let\n  (list \n    . (symbol) @_l\n    . (symbol) @local.define\n    . (list \n        (list . (symbol) @local.bind))\n    (#any-of? @_l \"let\" \"let*\" \"letrec\"))\n\n  (list\n    . (symbol) @_do\n    . (list\n        (list . (symbol) @local.bind)\n      )\n    (#any-of? @_do \"do\"))\n  "
 M["get-lexical-variables"] = function()
-  return ts["get-query-captures"]("scheme", locals_query, {"local"})
+  return ls["get-query-captures"]("scheme", scheme_completions["locals-query"], {"local"})
 end
 return M

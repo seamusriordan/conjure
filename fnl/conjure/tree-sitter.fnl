@@ -203,60 +203,6 @@
        vim.treesitter.require_language)
    lang))
 
-(fn get-captures-for-node [node opts results]
-  (let [buffer (. opts :buffer)
-        query  (. opts :query)
-        labels (. opts :labels)
-        captures (query:iter_captures node 0)]
-    
-    (icollect [id n captures]
-      (let [value (vim.treesitter.get_node_text n buffer)
-            captured-label (. query.captures id)]
-
-        (when (a.contains? labels captured-label)
-          (table.insert results value))))))
-
-(fn get-captures-for-top-of-node [node opts results]
-  (let [node-results []
-        child-results []]
-    (get-captures-for-node node opts node-results)
-
-    (each [child (node:iter_children)]
-      (get-captures-for-node child opts child-results))
-
-    (each [_ v (ipairs node-results)]
-      (when (not (a.contains? child-results v))
-        (table.insert results v))))
-  results)
-
-(fn query-through-priors-to-root [node opts results]
-  (let [acc (or results [])
-        parent (node:parent)]
-    (when (not= parent nil)
-      (var next-node node)
-      (var labels [:local.define :local.bind])
-      (while (not= next-node nil)
-        (tset opts :labels labels) 
-        (get-captures-for-top-of-node next-node opts acc)
-        (set next-node (next-node:prev_sibling))
-        (set labels [:local.define]))
-      (query-through-priors-to-root parent opts acc))
-    acc))
-
-(fn get-query-captures [lang query]
-  (let [opts {:buffer (vim.api.nvim_get_current_buf)
-              :query  (vim.treesitter.query.parse lang query) }
-        node (get-node-at-cursor)
-        results (query-through-priors-to-root node opts)]
-    results))
-
-(fn get-file-query-captures [lang query-file]
-  (let [opts {:buffer (vim.api.nvim_get_current_buf)
-              :query  (vim.treesitter.query.get lang query-file) }
-        node (get-node-at-cursor)
-        results (query-through-priors-to-root node opts)]
-   results))
-
 {: enabled?
  : parse!
  : node->str
@@ -266,6 +212,7 @@
  : range
  : node->table
  : get-root
+ : get-node-at-cursor
  : leaf?
  : sym?
  : get-leaf
@@ -273,6 +220,4 @@
  : node-prefixed-by-chars?
  : get-form
  : add-language
- : get-query-captures
- : get-file-query-captures
 }

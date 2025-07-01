@@ -1,6 +1,6 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
-(local ts (autoload :conjure.tree-sitter))
+(local ls (autoload :conjure.lexical-search))
 (local dict (autoload :conjure.client.scheme.dict))
 (local log (autoload :conjure.log))
 (local config (autoload :conjure.config))
@@ -8,15 +8,15 @@
 
 (local M (define :conjure.client.scheme.completions))
 
-(local locals-query "
+(tset M :locals-query "
   (list 
     . (symbol) @_d
     . (list
          . (symbol) @local.define
          ((symbol) @local.bind)*
-         (list (symbol) @local.bind)*
+         (list (symbol)* @local.bind)*
       )
-    (#any-of? @_d \"define\" \"define*\" \"lambda\" \"syntax-rules\"))
+    (#any-of? @_d \"define\" \"define*\" \"lambda\"))
 
   (list 
     . (symbol) @_d
@@ -28,6 +28,16 @@
     . (list 
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"letrec\" \"letrec-syntax\"))
+
+  (list 
+    . (symbol) @_sr
+    . (list) 
+    . (list ; square bracket
+        (list 
+          . (_) (symbol)* @local.bind
+        ) 
+      )*
+    (#eq? @_sr \"syntax-rules\"))
   
   (list 
     . (symbol) @_l
@@ -64,9 +74,9 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (. dict dict-key) ]
     (a.concat
-      (ts.get-query-captures
+      (ls.get-query-captures
         :scheme
-        locals-query)
+        M.locals-query)
       built-in-symbols)))
 
 M
