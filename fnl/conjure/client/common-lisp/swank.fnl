@@ -304,6 +304,12 @@
 (fn on-exit []
   (disconnect))
 
+(fn format-for-cmpl
+  [rs]
+  (let [cmpls (parse-separated-list rs)]
+    (table.remove cmpls) ; last result appears to be the prefix sent?
+    cmpls))
+
 ;; completions - partially copied from client/fennel/aniseed.fnl.
 (fn completions [opts]
   ;(when (not= nil opts)
@@ -311,15 +317,10 @@
   (let [lexical-completions (cmpl.get-lexical-completions)]
     (if (connected?) 
       (let [code (.. "(swank:simple-completions " (a.pr-str opts.prefix) " " (a.pr-str opts.context) ")")
-            format-for-cmpl
-            (fn [rs]
-              (let [cmpls (parse-separated-list rs)
-                    last (table.remove cmpls)]
-                (table.insert cmpls 1 last)
-                cmpls))
             result-fn
             (fn [results]
-              (let [cmpl-list (util.concat-nodup lexical-completions (format-for-cmpl results))]
+              (let [parsed-results (format-for-cmpl results)
+                    cmpl-list (util.concat-nodup lexical-completions parsed-results)]
                 ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
                 ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
                 (opts.cb cmpl-list) ; return the list of completions

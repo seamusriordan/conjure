@@ -6,36 +6,36 @@
 (local locals-query "
   (defun_header
     function_name: ((sym_lit) @global.define)*
-    lambda_list: 
+    lambda_list:
       (list_lit
         ((sym_lit) @local.bind)*
       )
-   ) 
+  )
 
   (defun_header
     function_name: ((sym_lit) @global.define)*
-    lambda_list: 
+    lambda_list:
      (list_lit
         (list_lit
           . (sym_lit) @local.bind
         )
      )
-  ) 
-  
+  )
+
   (list_lit
     .
     (sym_lit) @_defvar
     .
     (sym_lit) @global.define
     (#match? @_defvar \"^(cl:)?(defvar|defparameter|defconstant|defsetf)$\"))
-   
+
   (list_lit
     .
     (sym_lit) @_deftest
     .
     (sym_lit) @global.define
     (#eq? @_deftest \"deftest\"))
-   
+
   (for_clause
     .
     (sym_lit) @local.bind
@@ -75,7 +75,6 @@
     . (sym_lit) @global.define
   (#any-of? @_dc \"defclass\" \"defstruct\"))
 ")
-
 
 
 (fn M.get-lexical-completions []

@@ -285,24 +285,22 @@ end
 local function on_exit()
   return disconnect()
 end
+local function format_for_cmpl(rs)
+  local cmpls = parse_separated_list(rs)
+  table.remove(cmpls)
+  return cmpls
+end
 local function completions(opts)
   local lexical_completions = cmpl["get-lexical-completions"]()
   if connected_3f() then
     local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
-    local format_for_cmpl
-    local function _41_(rs)
-      local cmpls = parse_separated_list(rs)
-      local last = table.remove(cmpls)
-      table.insert(cmpls, 1, last)
-      return cmpls
-    end
-    format_for_cmpl = _41_
     local result_fn
-    local function _42_(results)
-      local cmpl_list = util["concat-nodup"](lexical_completions, format_for_cmpl(results))
+    local function _41_(results)
+      local parsed_results = format_for_cmpl(results)
+      local cmpl_list = util["concat-nodup"](lexical_completions, parsed_results)
       return opts.cb(cmpl_list)
     end
-    result_fn = _42_
+    result_fn = _41_
     a.assoc(opts, "code", code)
     a.assoc(opts, "on-result", result_fn)
     a.assoc(opts, "passive?", true)

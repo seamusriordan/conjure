@@ -18,7 +18,7 @@
         query  (. opts :query)
         labels (. opts :labels)
         captures (query:iter_captures node 0)]
-    
+
     (icollect [id n captures]
       (let [value (vim.treesitter.get_node_text n buffer)
             captured-label (. query.captures id)]
@@ -30,7 +30,6 @@
   (let [results       []
         node-results  (get-captures-for-node node opts)
         child-results []]
-    
 
     (each [child (node:iter_children)]
       (when (not (nodes_eqv node child))

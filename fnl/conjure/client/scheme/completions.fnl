@@ -18,7 +18,7 @@
       )
     (#any-of? @_d \"define\" \"define*\"))
 
-  (list 
+  (list
     . (symbol) @_d
     . (list
          ((symbol) @local.bind)*
@@ -26,38 +26,38 @@
       )
     (#any-of? @_d \"lambda\"))
 
-  (list 
+  (list
     . (symbol) @_d
     . (symbol) @local.define
     (#any-of? @_d \"define\" \"define-syntax\"))
 
-  (list 
+  (list
     . (symbol) @_l
-    . (list 
+    . (list
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"letrec\" \"letrec-syntax\"))
 
-  (list 
+  (list
     . (symbol) @_sr
-    . (list) 
+    . (list)
     . (list ; square bracket
-        (list 
+        (list
           . (_) (symbol)* @local.bind
-        ) 
+        )
       )*
     (#eq? @_sr \"syntax-rules\"))
-  
-  (list 
+
+  (list
     . (symbol) @_l
-    . (list 
+    . (list
         (list . (list (symbol) @local.bind)))
     (#any-of? @_l \"let-values\" \"let*-values\"))
 
   ;; named let
-  (list 
+  (list
     . (symbol) @_l
     . (symbol) @local.bind
-    . (list 
+    . (list
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"letrec\"))
 
@@ -82,7 +82,7 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (. dict dict-key) ]
     (util.concat-nodup
-      (ls.get-query-captures
+      (ls.get-lexical-captures-for-query
         :scheme
         M.locals-query)
       built-in-symbols)))
