@@ -308,7 +308,7 @@
 (fn completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
-  (let [lexical-completions ["derp"]]
+  (let [lexical-completions (cmpl.get-lexical-completions)]
     (if (connected?) 
       (let [code (.. "(swank:simple-completions " (a.pr-str opts.prefix) " " (a.pr-str opts.context) ")")
             format-for-cmpl

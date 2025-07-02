@@ -286,7 +286,7 @@ local function on_exit()
   return disconnect()
 end
 local function completions(opts)
-  local lexical_completions = {"derp"}
+  local lexical_completions = cmpl["get-lexical-completions"]()
   if connected_3f() then
     local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
     local format_for_cmpl

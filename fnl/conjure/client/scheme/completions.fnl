@@ -16,7 +16,15 @@
          ((symbol) @local.bind)*
          (list (symbol)* @local.bind)*
       )
-    (#any-of? @_d \"define\" \"define*\" \"lambda\"))
+    (#any-of? @_d \"define\" \"define*\"))
+
+  (list 
+    . (symbol) @_d
+    . (list
+         ((symbol) @local.bind)*
+         (list (symbol)* @local.bind)*
+      )
+    (#any-of? @_d \"lambda\"))
 
   (list 
     . (symbol) @_d
@@ -48,7 +56,7 @@
   ;; named let
   (list 
     . (symbol) @_l
-    . (symbol) @local.define
+    . (symbol) @local.bind
     . (list 
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"letrec\"))
