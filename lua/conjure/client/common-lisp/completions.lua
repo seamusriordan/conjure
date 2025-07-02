@@ -2,11 +2,10 @@
 local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
-local a = autoload("conjure.nfnl.core")
-local log = autoload("conjure.log")
-local ts = autoload("conjure.tree-sitter")
+local ls = autoload("conjure.lexical-search")
 local M = define("conjure.client.common-lisp.completions")
-M["get-lexical-variables"] = function()
-  return ts["get-query-captures"]("commonlisp", "locals")
+local locals_query = "\n  "
+M["get-lexical-completions"] = function()
+  return ls["get-query-captures"]("common-lisp", M["locals-query"])
 end
 return M
