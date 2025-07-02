@@ -3,8 +3,8 @@ local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
-local log = autoload("conjure.log")
 local ts = autoload("conjure.tree-sitter")
+local util = autoload("conjure.util")
 local M = define("conjure.lexical-search")
 local function nodes_eqv(l, r)
   local _, _0, lsb = l:start()
@@ -13,8 +13,8 @@ local function nodes_eqv(l, r)
   local _5, _6, reb = r:end_()
   return ((lsb == rsb) and (leb == reb))
 end
-local function get_captures_for_node(node, opts, results)
-  local acc = (results or {})
+local function get_captures_for_node(node, opts)
+  local results = {}
   local buffer = opts.buffer
   local query = opts.query
   local labels = opts.labels
@@ -27,8 +27,8 @@ local function get_captures_for_node(node, opts, results)
       do
         local value = vim.treesitter.get_node_text(n, buffer)
         local captured_label = query.captures[id]
-        if (a["contains?"](labels, captured_label) and not a["contains?"](acc, value)) then
-          val_23_ = table.insert(acc, value)
+        if a["contains?"](labels, captured_label) then
+          val_23_ = table.insert(results, value)
         else
           val_23_ = nil
         end
@@ -40,13 +40,12 @@ local function get_captures_for_node(node, opts, results)
       end
     end
   end
-  return acc
+  return results
 end
-local function get_captures_for_top_of_node(node, opts, results)
-  local acc = (results or {})
-  local node_results = {}
+local function get_captures_for_top_of_node(node, opts)
+  local results = {}
+  local node_results = get_captures_for_node(node, opts)
   local child_results = {}
-  get_captures_for_node(node, opts, node_results)
   for child in node:iter_children() do
     if not nodes_eqv(node, child) then
       local labels = opts.labels
@@ -54,46 +53,48 @@ local function get_captures_for_top_of_node(node, opts, results)
         return (l ~= "global.define")
       end
       opts["labels"] = a.filter(_4_, labels)
-      get_captures_for_node(child, opts, child_results)
+      util["add-to"](child_results, get_captures_for_node(child, opts))
     else
     end
   end
   for _, v in ipairs(node_results) do
-    if (not a["contains?"](child_results, v) and not a["contains?"](acc, v)) then
-      table.insert(acc, v)
+    if not a["contains?"](child_results, v) then
+      table.insert(results, v)
     else
     end
   end
-  return acc
+  return results
 end
-local function query_through_priors_to_root(node, opts, results)
-  local acc = (results or {})
+local function query_through_priors_to_root(node, opts)
+  local results = {}
   local parent = node:parent()
   if (parent ~= nil) then
     local next_node = node
     local labels = {"global.define", "local.define", "local.bind"}
     while (next_node ~= nil) do
       opts["labels"] = labels
-      get_captures_for_top_of_node(next_node, opts, acc)
+      util["add-to"](results, get_captures_for_top_of_node(next_node, opts))
       next_node = next_node:prev_sibling()
       labels = {"global.define", "local.define"}
     end
-    query_through_priors_to_root(parent, opts, acc)
+    util["add-to"](results, query_through_priors_to_root(parent, opts))
   else
   end
-  return acc
+  return results
 end
 local function get_captures_for_root_node(node, opts)
   opts["labels"] = {"global.define", "local.define"}
   return get_captures_for_node(node, opts)
 end
-M["get-query-captures"] = function(lang, query)
+M["get-lexical-captures-for-query"] = function(lang, query)
   local opts = {buffer = vim.api.nvim_get_current_buf(), query = vim.treesitter.query.parse(lang, query)}
   local node = ts["get-node-at-cursor"]()
+  local result
   if (node:parent() == nil) then
-    return get_captures_for_root_node(node, opts)
+    result = get_captures_for_root_node(node, opts)
   else
-    return query_through_priors_to_root(node, opts)
+    result = query_through_priors_to_root(node, opts)
   end
+  return util.dedup(result)
 end
 return M

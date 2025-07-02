@@ -79,8 +79,8 @@
 
 
 (fn M.get-lexical-completions []
-   (ls.get-query-captures
-         :commonlisp
-         locals-query))
+  (ls.get-lexical-captures-for-query
+    :commonlisp
+    locals-query))
 
 M

@@ -1,26 +1,34 @@
-(fn wrap-require-fn-call [mod f]
+(local {: define} (require :conjure.nfnl.module))
+
+(local M (define :conjure.util))
+
+(fn M.wrap-require-fn-call [mod f]
   "We deliberately don't pass args through here because functions can behave
   very differently if they blindly accept args. If you need the args you should
   do your own function wrapping and not use this shorthand."
   (fn []
     ((. (require mod) f))))
 
-(fn replace-termcodes [s]
+(fn M.replace-termcodes [s]
   (vim.api.nvim_replace_termcodes s true false true))
 
-(fn concat-nodup [a b]
-  (let [seen {}
+(fn M.concat-nodup [l r]
+  (let [seen   {}
         result []]
-    (each [_ v (ipairs a)]
+    (each [_ v (ipairs l)]
       (when (not (. seen v) )
-        (tset seen (tostring v) true)
+        (tset seen v true)
         (table.insert result v)))
-    (each [_ v (ipairs b)]
+    (each [_ v (ipairs r)]
       (when (not (. seen v) )
-        (tset seen (tostring v) true)
+        (tset seen v true)
         (table.insert result v)))
     result))
 
-{: wrap-require-fn-call
- : replace-termcodes
- : concat-nodup }
+(fn M.add-to [base addend]
+  (each [_ v (ipairs addend)]
+    (table.insert base v)))
+
+(fn M.dedup [t] (M.concat-nodup [] t)) 
+
+M
