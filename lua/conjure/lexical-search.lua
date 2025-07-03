@@ -65,6 +65,15 @@ local function extract_scopes(query, captures)
   end
   return results
 end
+local function get_node_text(node, buffer, meta)
+  local base_text = vim.treesitter.get_node_text(node, buffer)
+  local prefix = meta.prefix
+  if prefix then
+    return (prefix .. base_text)
+  else
+    return base_text
+  end
+end
 local function get_lexical_captures_at_cursor(query)
   local buffer = vim.api.nvim_get_current_buf()
   local cursor_node = ts["get-node-at-cursor"]()
@@ -75,14 +84,14 @@ local function get_lexical_captures_at_cursor(query)
   local cursor_scopes = get_node_scopes(cursor_node, scopes)
   local captures = query:iter_captures(tree:root(), buffer, 0, row)
   local results = {}
-  for id, n in captures do
+  for id, n, meta in captures do
     local captured_label = query.captures[id]
     if ("global.define" == captured_label) then
-      table.insert(results, vim.treesitter.get_node_text(n, buffer))
+      table.insert(results, get_node_text(n, buffer, meta))
     elseif (("local.bind" == captured_label) and contains_node_or_nil(cursor_scopes, get_nth_scope_parent(1, n, scopes))) then
-      table.insert(results, vim.treesitter.get_node_text(n, buffer))
+      table.insert(results, get_node_text(n, buffer, meta))
     elseif (("local.define" == captured_label) and contains_node_or_nil(cursor_scopes, get_nth_scope_parent(2, n, scopes))) then
-      table.insert(results, vim.treesitter.get_node_text(n, buffer))
+      table.insert(results, get_node_text(n, buffer, meta))
     else
     end
   end

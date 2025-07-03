@@ -6,19 +6,24 @@
 (local locals-query "
   (defun_header
     function_name: ((sym_lit) @global.define)*
+  )
+  @local.scope
+
+  (defun_header
     lambda_list:
       (list_lit
-        ((sym_lit) @local.define)*
+          (sym_lit) @local.define
+          (#not-lua-match? @local.define \"^&.*\")
       )
   )
   @local.scope
 
   (defun_header
-    function_name: ((sym_lit) @global.define)*
     lambda_list:
      (list_lit
         (list_lit
-          . (sym_lit) @local.define
+          (sym_lit) @local.define
+          (#not-lua-match? @local.define \"^&.*\")
         )
      )
   )
@@ -105,10 +110,10 @@
   (list_lit
     . (sym_lit) @_l
     . (list_lit
-       (list_lit 
-         . (sym_lit) @local.bind
-         . (list_lit (sym_lit) @local.bind))
-       @local.scope
+        (list_lit 
+          . (sym_lit) @local.bind
+          . (list_lit (sym_lit) @local.bind))
+        @local.scope
       )
     (#any-of? @_l \"flet\" \"labels\" \"macrolet\"))
   @local.scope
@@ -117,6 +122,26 @@
     . (sym_lit) @_dc
     . (sym_lit) @global.define
   (#any-of? @_dc \"defclass\" \"defstruct\"))
+  @local.scope
+
+  (list_lit
+    . (sym_lit) @_dc
+    . (sym_lit)
+    . (list_lit)
+    . (list_lit 
+        (list_lit
+          . (sym_lit) @global.define  ; need to deal with accessor, etc
+        )
+      )
+    (#eq? @_dc \"defclass\"))
+  @local.scope
+
+  (list_lit
+    . (sym_lit) @_ds
+    . (sym_lit) 
+    . (sym_lit) @global.define* 
+    (#set! prefix \":\")
+    (#eq? @_ds \"defstruct\"))
   @local.scope
 ")
 
