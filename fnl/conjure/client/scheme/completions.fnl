@@ -13,8 +13,11 @@
     . (symbol) @_d
     . (list
          . (symbol) @local.define
-         ((symbol) @local.bind)*
-         (list (symbol)* @local.bind)*
+         [
+           ((symbol) @local.bind)
+           (list . (symbol) @local.bind)
+           (keyword)
+         ]*
       )
     (#any-of? @_d \"define\" \"define*\"))
     @local.scope
@@ -22,10 +25,13 @@
   (list
     . (symbol) @_l
     . (list
-         ((symbol) @local.bind)*
-         (list (symbol)* @local.bind)*
+         [
+           ((symbol) @local.bind)
+           (list . (symbol) @local.bind)
+           (keyword)
+         ]*
       ) 
-    (#any-of? @_l \"lambda\"))
+    (#any-of? @_l \"lambda\" \"lambda*\"))
     @local.scope
 
   (list
