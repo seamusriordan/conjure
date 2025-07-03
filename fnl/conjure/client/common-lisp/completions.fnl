@@ -131,6 +131,7 @@
     . (list_lit 
         (list_lit
           . (sym_lit) @global.define  ; need to deal with accessor, etc
+          (#set! prefix \":\")
         )
       )
     (#eq? @_dc \"defclass\"))
