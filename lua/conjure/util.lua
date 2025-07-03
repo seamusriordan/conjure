@@ -30,13 +30,7 @@ M["concat-nodup"] = function(l, r)
   end
   return result
 end
-M["add-to"] = function(base, addend)
-  for _, v in ipairs(addend) do
-    table.insert(base, v)
-  end
-  return nil
-end
-M.dedup = function(t)
-  return M["concat-nodup"]({}, t)
+M.dedup = function(l)
+  return M["concat-nodup"]({}, l)
 end
 return M

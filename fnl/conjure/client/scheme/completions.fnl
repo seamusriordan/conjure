@@ -17,25 +17,29 @@
          (list (symbol)* @local.bind)*
       )
     (#any-of? @_d \"define\" \"define*\"))
+    @local.scope
 
   (list
-    . (symbol) @_d
+    . (symbol) @_l
     . (list
          ((symbol) @local.bind)*
          (list (symbol)* @local.bind)*
-      )
-    (#any-of? @_d \"lambda\"))
+      ) 
+    (#any-of? @_l \"lambda\"))
+    @local.scope
 
   (list
     . (symbol) @_d
     . (symbol) @local.define
     (#any-of? @_d \"define\" \"define-syntax\"))
+    @local.scope
 
   (list
     . (symbol) @_l
     . (list
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"letrec\" \"letrec-syntax\"))
+    @local.scope
 
   (list
     . (symbol) @_sr
@@ -46,12 +50,14 @@
         )
       )*
     (#eq? @_sr \"syntax-rules\"))
+    @local.scope
 
   (list
     . (symbol) @_l
     . (list
         (list . (list (symbol) @local.bind)))
     (#any-of? @_l \"let-values\" \"let*-values\"))
+    @local.scope
 
   ;; named let
   (list
@@ -60,6 +66,7 @@
     . (list
         (list . (symbol) @local.bind))
     (#any-of? @_l \"let\" \"let*\" \"letrec\"))
+    @local.scope
 
   (list
     . (symbol) @_do
@@ -67,6 +74,7 @@
         (list . (symbol) @local.bind)
       )
     (#any-of? @_do \"do\"))
+    @local.scope
   ")
 
 (fn get-dict-key-from-stdio-command [command]

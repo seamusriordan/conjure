@@ -1,74 +1,87 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
 (local ts (autoload :conjure.tree-sitter))
+(local log (autoload :conjure.log))
 (local util (autoload :conjure.util))
 
 (local M (define :conjure.lexical-search))
 
-(fn nodes_eqv [l r]
-  (let [(_ _ lsb) (l:start)
-        (_ _ rsb) (r:start)
-        (_ _ leb) (l:end_)
-        (_ _ reb) (r:end_)]
-    (and (= lsb rsb) (= leb reb))))
+(fn contains-node [nodes n]
+  (if 
+    (= nil n)
+    false
+    (a.some #(n:equal $1) nodes)))
 
-(fn get-captures-for-node [node opts]
+(fn contains-node-or-nil [nodes n]
+  (if 
+    (= nil n)
+    true
+    (contains-node nodes n)))
+
+(fn get-scope-parent [node scopes] 
+  (if (= nil node)
+         nil
+      (= nil (node:parent))
+         nil
+      (contains-node scopes (node:parent))
+         (node:parent)
+      (get-scope-parent (node:parent) scopes)))
+
+(fn get-nth-scope-parent [n node scopes] 
+  (if (= n 0)
+    node
+    (get-nth-scope-parent (- n 1) (get-scope-parent node scopes) scopes)))
+
+(fn get-node-scopes [node scopes matched-scopes]
+  (let [acc (or matched-scopes [])
+        next-scope (get-scope-parent node scopes)]
+
+    (when (contains-node scopes node)
+      (table.insert acc node))
+
+    (if 
+      (= nil next-scope)
+      acc
+      (get-node-scopes next-scope scopes acc))))
+
+(fn extract-scopes [query captures]
+  (let [results []] 
+    (each [id n captures]
+      (let [captured-label (. query.captures id)]
+        (if (= :local.scope captured-label)
+          (table.insert results n))))
+    results))
+
+(fn get-captures-by-scope-for-node [node query buffer]
   (let [results []
-        buffer (. opts :buffer)
-        query  (. opts :query)
-        labels (. opts :labels)
-        captures (query:iter_captures node 0)]
+        tree (node:tree)
+        (row _)   (unpack (vim.api.nvim_win_get_cursor 0))
+        scope-captures (query:iter_captures (tree:root) buffer 0 row)
+        scopes (extract-scopes query scope-captures buffer)
+        cursor-scopes (get-node-scopes node scopes) 
+        captures (query:iter_captures (tree:root) buffer 0 row) ]
 
-    (icollect [id n captures]
-      (let [value (vim.treesitter.get_node_text n buffer)
-            captured-label (. query.captures id)]
-        (when (a.contains? labels captured-label)
-          (table.insert results value))))
+    (each [id n captures]
+      (let [ (_ _ capture_byte_pos) (n:start)
+            captured-label (. query.captures id) ]
+          (if 
+            (= :global.define captured-label)
+            (table.insert results (vim.treesitter.get_node_text n buffer))
+
+            (and (= :local.bind captured-label) 
+                 (contains-node-or-nil cursor-scopes (get-nth-scope-parent 1 n scopes)))
+            (table.insert results (vim.treesitter.get_node_text n buffer))
+
+            (and (= :local.define captured-label) 
+                 (contains-node-or-nil cursor-scopes (get-nth-scope-parent 2 n scopes)))
+            (table.insert results (vim.treesitter.get_node_text n buffer)))))
+
     results))
-
-(fn get-captures-for-top-of-node [node opts]
-  (let [results       []
-        node-results  (get-captures-for-node node opts)
-        child-results []]
-
-    (each [child (node:iter_children)]
-      (when (not (nodes_eqv node child))
-        (let [labels (. opts :labels)]
-          (tset opts :labels (a.filter (fn [l] (not= l :global.define)) labels))
-          (util.add-to child-results (get-captures-for-node child opts)))))
-
-    (each [_ v (ipairs node-results)]
-      (when (not (a.contains? child-results v))
-        (table.insert results v)))
-    results))
-
-(fn query-through-priors-to-root [node opts]
-  (let [results []
-        parent (node:parent)]
-
-    (when (not= parent nil)
-      (var next-node node)
-      (var labels [:global.define :local.define :local.bind])
-
-      (while (not= next-node nil)
-        (tset opts :labels labels) 
-        (util.add-to results (get-captures-for-top-of-node next-node opts))
-        (set next-node (next-node:prev_sibling))
-        (set labels [:global.define :local.define]))
-      (util.add-to results (query-through-priors-to-root parent opts)))
-    results))
-
-(fn get-captures-for-root-node [node opts]
-  (tset opts :labels [:global.define :local.define])
-  (get-captures-for-node node opts))
 
 (fn M.get-lexical-captures-for-query [lang query]
-  (let [opts {:buffer (vim.api.nvim_get_current_buf)
-              :query  (vim.treesitter.query.parse lang query) }
-        node (ts.get-node-at-cursor)
-        result (if (= (node:parent) nil)
-                 (get-captures-for-root-node node opts) 
-                 (query-through-priors-to-root node opts))]
-    (util.dedup result)))
+  (let [node   (ts.get-node-at-cursor) 
+        query  (vim.treesitter.query.parse lang query) 
+        buffer (vim.api.nvim_get_current_buf)]
+    (util.dedup (get-captures-by-scope-for-node node query buffer))))
 
 M

@@ -25,10 +25,7 @@
         (table.insert result v)))
     result))
 
-(fn M.add-to [base addend]
-  (each [_ v (ipairs addend)]
-    (table.insert base v)))
-
-(fn M.dedup [t] (M.concat-nodup [] t)) 
+(fn M.dedup [l]
+  (M.concat-nodup [] l))
 
 M
