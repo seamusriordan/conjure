@@ -90,7 +90,7 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (. dict dict-key) ]
     (util.concat-nodup
-      (ls.get-lexical-captures-for-query
+      (ls.get-lexical-captures
         :scheme
         M.locals-query)
       built-in-symbols)))

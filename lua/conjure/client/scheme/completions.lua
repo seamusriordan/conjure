@@ -27,6 +27,6 @@ M["get-completions"] = function()
   local stdio_command = config["get-in"]({"client", "scheme", "stdio", "command"})
   local dict_key = get_dict_key_from_stdio_command(stdio_command)
   local built_in_symbols = dict0[dict_key]
-  return util["concat-nodup"](ls["get-lexical-captures-for-query"]("scheme", M["locals-query"]), built_in_symbols)
+  return util["concat-nodup"](ls["get-lexical-captures"]("scheme", M["locals-query"]), built_in_symbols)
 end
 return M

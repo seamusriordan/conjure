@@ -32,6 +32,6 @@ M["format-results"] = function(rs)
   return cmpls
 end
 M["get-non-repl-completions"] = function()
-  return util["concat-nodup"](ls["get-lexical-captures-for-query"]("scheme", scheme_completions["locals-query"]), scheme_dict.guile)
+  return util["concat-nodup"](ls["get-lexical-captures"]("scheme", scheme_completions["locals-query"]), scheme_dict.guile)
 end
 return M

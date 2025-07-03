@@ -122,7 +122,7 @@
 
 
 (fn M.get-lexical-completions []
-  (ls.get-lexical-captures-for-query
+  (ls.get-lexical-captures
     :commonlisp
     locals-query))
 

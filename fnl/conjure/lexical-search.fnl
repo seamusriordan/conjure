@@ -1,7 +1,6 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
 (local ts (autoload :conjure.tree-sitter))
-(local log (autoload :conjure.log))
 (local util (autoload :conjure.util))
 
 (local M (define :conjure.lexical-search))
@@ -52,18 +51,19 @@
           (table.insert results n))))
     results))
 
-(fn get-captures-by-scope-for-node [node query buffer]
-  (let [results []
-        tree (node:tree)
-        (row _)   (unpack (vim.api.nvim_win_get_cursor 0))
+(fn get-lexical-captures-at-cursor [query]
+  (let [buffer         (vim.api.nvim_get_current_buf)
+        cursor-node    (ts.get-node-at-cursor) 
+        (row _)        (unpack (vim.api.nvim_win_get_cursor 0))
+        tree           (cursor-node:tree)
         scope-captures (query:iter_captures (tree:root) buffer 0 row)
-        scopes (extract-scopes query scope-captures buffer)
-        cursor-scopes (get-node-scopes node scopes) 
-        captures (query:iter_captures (tree:root) buffer 0 row) ]
+        scopes         (extract-scopes query scope-captures buffer)
+        cursor-scopes  (get-node-scopes cursor-node scopes) 
+        captures       (query:iter_captures (tree:root) buffer 0 row) 
+        results        [] ]
 
     (each [id n captures]
-      (let [ (_ _ capture_byte_pos) (n:start)
-            captured-label (. query.captures id) ]
+      (let [ captured-label (. query.captures id) ]
           (if 
             (= :global.define captured-label)
             (table.insert results (vim.treesitter.get_node_text n buffer))
@@ -76,12 +76,10 @@
                  (contains-node-or-nil cursor-scopes (get-nth-scope-parent 2 n scopes)))
             (table.insert results (vim.treesitter.get_node_text n buffer)))))
 
-    results))
+    (util.dedup results)))
 
-(fn M.get-lexical-captures-for-query [lang query]
-  (let [node   (ts.get-node-at-cursor) 
-        query  (vim.treesitter.query.parse lang query) 
-        buffer (vim.api.nvim_get_current_buf)]
-    (util.dedup (get-captures-by-scope-for-node node query buffer))))
+(fn M.get-lexical-captures [lang raw-query]
+  (let [ query  (vim.treesitter.query.parse lang raw-query) ]
+    (get-lexical-captures-at-cursor query)))
 
 M

@@ -4,7 +4,6 @@ local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
 local ts = autoload("conjure.tree-sitter")
-local log = autoload("conjure.log")
 local util = autoload("conjure.util")
 local M = define("conjure.lexical-search")
 local function contains_node(nodes, n)
@@ -66,16 +65,17 @@ local function extract_scopes(query, captures)
   end
   return results
 end
-local function get_captures_by_scope_for_node(node, query, buffer)
-  local results = {}
-  local tree = node:tree()
+local function get_lexical_captures_at_cursor(query)
+  local buffer = vim.api.nvim_get_current_buf()
+  local cursor_node = ts["get-node-at-cursor"]()
   local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+  local tree = cursor_node:tree()
   local scope_captures = query:iter_captures(tree:root(), buffer, 0, row)
   local scopes = extract_scopes(query, scope_captures, buffer)
-  local cursor_scopes = get_node_scopes(node, scopes)
+  local cursor_scopes = get_node_scopes(cursor_node, scopes)
   local captures = query:iter_captures(tree:root(), buffer, 0, row)
+  local results = {}
   for id, n in captures do
-    local _0, _1, capture_byte_pos = n:start()
     local captured_label = query.captures[id]
     if ("global.define" == captured_label) then
       table.insert(results, vim.treesitter.get_node_text(n, buffer))
@@ -86,12 +86,10 @@ local function get_captures_by_scope_for_node(node, query, buffer)
     else
     end
   end
-  return results
+  return util.dedup(results)
 end
-M["get-lexical-captures-for-query"] = function(lang, query)
-  local node = ts["get-node-at-cursor"]()
-  local query0 = vim.treesitter.query.parse(lang, query)
-  local buffer = vim.api.nvim_get_current_buf()
-  return util.dedup(get_captures_by_scope_for_node(node, query0, buffer))
+M["get-lexical-captures"] = function(lang, raw_query)
+  local query = vim.treesitter.query.parse(lang, raw_query)
+  return get_lexical_captures_at_cursor(query)
 end
 return M

@@ -32,7 +32,7 @@
 
 (fn M.get-non-repl-completions []
   (util.concat-nodup
-    (ls.get-lexical-captures-for-query
+    (ls.get-lexical-captures
       :scheme
       scheme-completions.locals-query)
     (. scheme-dict :guile)))
