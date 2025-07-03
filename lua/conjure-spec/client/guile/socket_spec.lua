@@ -7,6 +7,7 @@ local assert = require("luassert.assert")
 local guile = require("conjure.client.guile.socket")
 local config = require("conjure.config")
 local fake_socket = require("conjure-spec.client.guile.fake-socket")
+local fake_search = require("conjure-spec.fake-search")
 require("conjure-spec.assertions")
 local completion_code_define_match = "%(define%* %(%%conjure:get%-guile%-completions"
 local function set_repl_connected(repl)
@@ -15,6 +16,7 @@ local function set_repl_connected(repl)
 end
 local function _2_()
   package.loaded["conjure.remote.socket"] = fake_socket
+  package.loaded["conjure.lexical-search"] = fake_search
   local function _3_()
     local function _4_()
       return assert.are.equal(nil, guile.context("(print \"Hello World\")"))
@@ -163,40 +165,34 @@ local function _2_()
     local function _26_()
       local calls = {}
       local spy_send
-      local function _27_(call, callback)
-        return table.insert(calls, {code = call, callback = callback})
+      local function _27_(call)
+        return table.insert(calls, call)
       end
       spy_send = _27_
-      local fake_repl
-      local function _28_()
-      end
-      fake_repl = {send = spy_send, status = nil, destroy = _28_}
-      local expected_code = "%(%%conjure:get%-guile%-completions \"d\"%)"
+      local fake_repl = fake_socket["build-fake-repl"](spy_send)
       local callback_results = {}
       local fake_callback
-      local function _29_(result)
+      local function _28_(result)
         return table.insert(callback_results, result)
       end
-      fake_callback = _29_
+      fake_callback = _28_
       fake_socket["set-fake-repl"](fake_repl)
-      guile.connect({})
-      set_repl_connected(fake_repl)
-      guile.completions({cb = fake_callback, prefix = "d"})
-      local completion_call = calls[3]
-      completion_call.callback({{out = "(\"define\")"}})
-      guile.disconnect()
-      assert["has-substring"](expected_code, completion_call.code)
-      return assert.same({"define"}, callback_results[1])
+      guile.completions({cb = fake_callback, prefix = "define"})
+      return assert.same("define", callback_results[1][2])
     end
-    it("Executes completions in REPL for prefix d with result define", _26_)
-    local function _30_()
-      local sent_callbacks = {}
+    it("Gets built-in results for define when execute completions and REPL not connected", _26_)
+    local function _29_()
+      local calls = {}
       local spy_send
-      local function _31_(_, callback)
-        return table.insert(sent_callbacks, callback)
+      local function _30_(call, callback)
+        return table.insert(calls, {code = call, callback = callback})
       end
-      spy_send = _31_
-      local fake_repl = fake_socket["build-fake-repl"](spy_send)
+      spy_send = _30_
+      local fake_repl
+      local function _31_()
+      end
+      fake_repl = {send = spy_send, status = nil, destroy = _31_}
+      local expected_code = "%(%%conjure:get%-guile%-completions \"dela\"%)"
       local callback_results = {}
       local fake_callback
       local function _32_(result)
@@ -206,27 +202,52 @@ local function _2_()
       fake_socket["set-fake-repl"](fake_repl)
       guile.connect({})
       set_repl_connected(fake_repl)
+      guile.completions({cb = fake_callback, prefix = "dela"})
+      local completion_call = calls[3]
+      completion_call.callback({{out = "(\"dela-something\")"}})
+      guile.disconnect()
+      assert["has-substring"](expected_code, completion_call.code)
+      return assert.same({"delay", "dela-something"}, callback_results[1])
+    end
+    it("Executes completions in REPL for prefix dela with result delay and dela-something", _29_)
+    local function _33_()
+      local sent_callbacks = {}
+      local spy_send
+      local function _34_(_, callback)
+        return table.insert(sent_callbacks, callback)
+      end
+      spy_send = _34_
+      local fake_repl = fake_socket["build-fake-repl"](spy_send)
+      local callback_results = {}
+      local fake_callback
+      local function _35_(result)
+        return table.insert(callback_results, result)
+      end
+      fake_callback = _35_
+      fake_socket["set-fake-repl"](fake_repl)
+      guile.connect({})
+      set_repl_connected(fake_repl)
       guile.completions({cb = fake_callback, prefix = "fu"})
       sent_callbacks[3]({{out = "(\"fun\" \"func\" \"future\")"}})
       guile.disconnect()
       return assert.same({"future", "fun", "func"}, callback_results[1])
     end
-    return it("Puts last completion first for prefix fu with results fun func and future", _30_)
+    return it("Puts last completion first for prefix fu with results fun func and future", _33_)
   end
   describe("completions", _22_)
-  local function _33_()
-    local function _34_()
+  local function _36_()
+    local function _37_()
       config.merge({client = {guile = {socket = {pipename = "fake-pipe", ["host-port"] = nil, ["enable-completions"] = false}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
-      local function _35_(call)
+      local function _38_(call)
         return table.insert(calls, call)
       end
-      spy_send = _35_
+      spy_send = _38_
       local fake_repl
-      local function _36_()
+      local function _39_()
       end
-      fake_repl = {send = spy_send, status = nil, destroy = _36_}
+      fake_repl = {send = spy_send, status = nil, destroy = _39_}
       local expected_code = "(print \"Hello world\")"
       fake_socket["set-fake-repl"](fake_repl)
       guile.connect({})
@@ -236,15 +257,15 @@ local function _2_()
       assert.are.equal(",m (guile-user)\n,import (guile)", calls[1])
       return assert.are.equal((",m (guile-user)\n" .. expected_code), calls[2])
     end
-    it("Does not load completion code when completions disabled in config", _34_)
-    local function _37_()
+    it("Does not load completion code when completions disabled in config", _37_)
+    local function _40_()
       config.merge({client = {guile = {socket = {pipename = "fake-pipe", ["host-port"] = nil, ["enable-completions"] = true}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
-      local function _38_(call)
+      local function _41_(call)
         return table.insert(calls, call)
       end
-      spy_send = _38_
+      spy_send = _41_
       local fake_repl = fake_socket["build-fake-repl"](spy_send)
       local expected_code = "(print \"Hello world\")"
       fake_socket["set-fake-repl"](fake_repl)
@@ -256,35 +277,35 @@ local function _2_()
       assert["has-substring"](completion_code_define_match, calls[2])
       return assert.are.equal((",m (guile-user)\n" .. expected_code), calls[3])
     end
-    it("Does load completion code when completions enabled in config", _37_)
-    local function _39_()
+    it("Does load completion code when completions enabled in config", _40_)
+    local function _42_()
       config.merge({client = {guile = {socket = {pipename = "fake-pipe", ["host-port"] = nil, ["enable-completions"] = false}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
-      local function _40_(call)
+      local function _43_(call)
         return table.insert(calls, call)
       end
-      spy_send = _40_
+      spy_send = _43_
       local fake_repl
-      local function _41_()
+      local function _44_()
       end
-      fake_repl = {send = spy_send, status = nil, destroy = _41_}
+      fake_repl = {send = spy_send, status = nil, destroy = _44_}
       local callback_results = {}
       local fake_callback
-      local function _42_(result)
+      local function _45_(result)
         return table.insert(callback_results, result)
       end
-      fake_callback = _42_
+      fake_callback = _45_
       fake_socket["set-fake-repl"](fake_repl)
       guile.connect({})
       set_repl_connected(fake_repl)
-      guile.completions({cb = fake_callback, prefix = "something"})
+      guile.completions({cb = fake_callback, prefix = "define"})
       guile.disconnect()
       assert.same({}, calls)
       return assert.same({}, callback_results[1])
     end
-    return it("Does not execute completions in REPL when connected but completions disabled", _39_)
+    return it("Does not execute completions in REPL when connected but completions disabled", _42_)
   end
-  return describe("enable completions config setting", _33_)
+  return describe("enable completions config setting", _36_)
 end
 return describe("conjure.client.guile.socket", _2_)
