@@ -96,9 +96,24 @@
 
   (list_lit
     . (sym_lit) @_db
-    . (list_lit ((sym_lit) @local.bind)*)
+    . (list_lit 
+          (sym_lit) @local.bind
+          (#not-lua-match? @local.bind \"^&.*\")
+      )
     (#any-of? @_db \"destructuring-bind\" \"multiple-value-bind\"))
   @local.scope
+
+  (list_lit
+    . (sym_lit) @_db
+    . (list_lit
+        (list_lit
+          . (sym_lit) @local.bind
+        )
+          (#not-lua-match? @local.bind \"^&.*\")
+     )
+    (#any-of? @_db \"destructuring-bind\" \"multiple-value-bind\"))
+  @local.scope
+
 
   (list_lit
     . (sym_lit) @_l
@@ -111,7 +126,7 @@
     . (sym_lit) @_l
     . (list_lit
         (list_lit 
-          . (sym_lit) @local.bind
+          . (sym_lit) @local.define
           . (list_lit (sym_lit) @local.bind))
         @local.scope
       )
@@ -130,8 +145,8 @@
     . (list_lit)
     . (list_lit 
         (list_lit
-          . (sym_lit) @global.define  ; need to deal with accessor, etc
-          (#set! prefix \":\")
+;          . (sym_lit) @global.define  ; need to deal with accessor, etc
+;          (#set! prefix \":\")
         )
       )
     (#eq? @_dc \"defclass\"))
@@ -140,8 +155,8 @@
   (list_lit
     . (sym_lit) @_ds
     . (sym_lit) 
-    . (sym_lit) @global.define* 
-    (#set! prefix \":\")
+;    . (sym_lit) @global.define* 
+;    (#set! prefix \":\")
     (#eq? @_ds \"defstruct\"))
   @local.scope
 ")
