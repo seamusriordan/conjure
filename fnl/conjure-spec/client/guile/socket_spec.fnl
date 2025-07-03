@@ -3,7 +3,7 @@
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
 (local fake-socket (require :conjure-spec.client.guile.fake-socket))
-(local fake-search (require :conjure-spec.fake-search))
+(local fake-search (require :conjure-spec.fake-lexical-search))
 (require :conjure-spec.assertions)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
@@ -165,7 +165,6 @@
                     calls []
                     spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
                     fake-repl {:send spy-send :status nil :destroy (fn [])}
-                    expected-code "%(%%conjure:get%-guile%-completions \"dela\"%)"
                     callback-results  []
                     fake-callback (fn [result] (table.insert callback-results result))]
                 (fake-socket.set-fake-repl fake-repl)
@@ -177,8 +176,46 @@
                   ((. completion-call :callback) [{:out "(\"dela-something\")"}])
                   (guile.disconnect)
 
-                  (assert.has-substring expected-code (. completion-call :code))
                   (assert.same ["delay" "dela-something"] (. callback-results 1))))))
+
+        (it "Executes completions with lexical results given prefix dela with result delay dela-something and delalex"
+            (fn []
+              (let [
+                    calls []
+                    spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
+                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    callback-results  []
+                    fake-callback (fn [result] (table.insert callback-results result))]
+                (fake-search.set-fake-search-results ["delalex"])
+                (fake-socket.set-fake-repl fake-repl)
+
+                (guile.connect {})
+                (set-repl-connected fake-repl)
+                (guile.completions {:cb fake-callback :prefix "dela"})
+                ((. (. calls 3) :callback) [{:out "(\"dela-something\")"}])
+                (guile.disconnect)
+
+                (assert.same ["delalex" "delay" "dela-something"] (. callback-results 1)))))
+
+        (it "Deduplicates results when built-in lexical and repl results given prefix are all delay"
+            (fn []
+              (let [
+                    calls []
+                    spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
+                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    expected-code "%(%%conjure:get%-guile%-completions \"dela\"%)"
+                    callback-results  []
+                    fake-callback (fn [result] (table.insert callback-results result))]
+                (fake-search.set-fake-search-results ["delay"])
+                (fake-socket.set-fake-repl fake-repl)
+
+                (guile.connect {})
+                (set-repl-connected fake-repl)
+                (guile.completions {:cb fake-callback :prefix "dela"})
+                ((. (. calls 3) :callback) [{:out "(\"delay\")"}])
+                (guile.disconnect)
+
+                (assert.same ["delay"] (. callback-results 1)))))
 
         (it "Puts last completion first for prefix fu with results fun func and future"
             (fn []
