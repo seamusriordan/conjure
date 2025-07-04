@@ -1,9 +1,9 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
 (local ls (autoload :conjure.lexical-search))
-(local scheme-completions (autoload :conjure.client.scheme.completions))
 (local scheme-dict (autoload :conjure.client.scheme.dict))
 (local util (autoload :conjure.util))
+(local tsq (autoload :conjure.tree-sitter-queries))
 
 (local M (define :conjure.client.guile.completions))
 
@@ -34,7 +34,7 @@
   (util.concat-nodup
     (ls.get-lexical-captures
       :scheme
-      scheme-completions.locals-query)
-    (. scheme-dict :guile)))
+      (tsq.get-completion-query :scheme))
+    (scheme-dict.get-dict :guile)))
 
 M

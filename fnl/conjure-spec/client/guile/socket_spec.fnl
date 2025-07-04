@@ -4,6 +4,7 @@
 (local config (require :conjure.config))
 (local fake-socket (require :conjure-spec.client.guile.fake-socket))
 (local fake-search (require :conjure-spec.fake-lexical-search))
+(local fake-tree-sitter-queries (require :conjure-spec.fake-tree-sitter-queries))
 (require :conjure-spec.assertions)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
@@ -16,6 +17,7 @@
   (fn []
     (tset package.loaded "conjure.remote.socket" fake-socket)
     (tset package.loaded "conjure.lexical-search" fake-search)
+    (tset package.loaded "conjure.tree-sitter-queries" fake-tree-sitter-queries)
     (describe "context extraction"
       (fn [] 
         (it "returns nil for hello world"

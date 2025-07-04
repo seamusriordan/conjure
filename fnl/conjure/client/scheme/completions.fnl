@@ -1,87 +1,14 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
+(local a (autoload :conjure.aniseed.core))
 (local ls (autoload :conjure.lexical-search))
 (local dict (autoload :conjure.client.scheme.dict))
 (local log (autoload :conjure.log))
 (local config (autoload :conjure.config))
 (local dict (autoload :conjure.client.scheme.dict))
 (local util (autoload :conjure.util))
+(local tsq (autoload :conjure.tree-sitter-queries))
 
 (local M (define :conjure.client.scheme.completions))
-
-(tset M :locals-query "
-  (list 
-    . (symbol) @_d
-    . (list
-         . (symbol) @local.define
-         [
-           ((symbol) @local.bind)
-           (list . (symbol) @local.bind)
-           (keyword)
-         ]*
-      )
-    (#any-of? @_d \"define\" \"define*\"))
-    @local.scope
-
-  (list
-    . (symbol) @_l
-    . (list
-         [
-           ((symbol) @local.bind)
-           (list . (symbol) @local.bind)
-           (keyword)
-         ]*
-      ) 
-    (#any-of? @_l \"lambda\" \"lambda*\"))
-    @local.scope
-
-  (list
-    . (symbol) @_d
-    . (symbol) @local.define
-    (#any-of? @_d \"define\" \"define-syntax\"))
-    @local.scope
-
-  (list
-    . (symbol) @_l
-    . (list
-        (list . (symbol) @local.bind))
-    (#any-of? @_l \"let\" \"let*\" \"let-syntax\" \"letrec\" \"letrec-syntax\"))
-    @local.scope
-
-  (list
-    . (symbol) @_sr
-    . (list)
-    . (list ; square bracket
-        (list
-          . (_) (symbol)* @local.bind
-        )
-      )*
-    (#eq? @_sr \"syntax-rules\"))
-    @local.scope
-
-  (list
-    . (symbol) @_l
-    . (list
-        (list . (list (symbol) @local.bind)))
-    (#any-of? @_l \"let-values\" \"let*-values\"))
-    @local.scope
-
-  ;; named let
-  (list
-    . (symbol) @_l
-    . (symbol) @local.bind
-    . (list
-        (list . (symbol) @local.bind))
-    (#any-of? @_l \"let\" \"let*\" \"letrec\"))
-    @local.scope
-
-  (list
-    . (symbol) @_do
-    . (list
-        (list . (symbol) @local.bind)
-      )
-    (#any-of? @_do \"do\"))
-    @local.scope
-  ")
 
 (fn get-dict-key-from-stdio-command [command]
   (if 
@@ -94,11 +21,11 @@
 (fn M.get-completions []
   (let [stdio-command (config.get-in [:client :scheme :stdio :command])
         dict-key (get-dict-key-from-stdio-command stdio-command)
-        built-in-symbols (. dict dict-key) ]
+        built-in-symbols (dict.get-dict dict-key) ]
     (util.concat-nodup
       (ls.get-lexical-captures
         :scheme
-        M.locals-query)
+        (tsq.get-completion-query :scheme))
       built-in-symbols)))
 
 M

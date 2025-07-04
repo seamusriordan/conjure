@@ -2,8 +2,12 @@
 (local a (autoload :conjure.aniseed.core))
 
 (local M (define :conjure.client.scheme.dict))
+(local dicts {})
 
-(tset M :default [
+(fn M.get-dict [key]
+  (or (. dicts key) (. dicts :default)))
+
+(tset dicts :default [
   "*" "+" "-" "/" "<" "<=" "=" ">" ">=" "abs" "acos" "and" "angle" "append" "apply"
 "asin" "assoc" "assq" "assv" "atan" "begin" "boolean?" "caaaar" "caaadr"
 "caaar" "caadar" "caaddr" "caadr" "caar" "cadaar" "cadadr" "cadar" "caddar"
@@ -39,8 +43,9 @@
 "vector-length" "vector-ref" "vector-set!" "vector?" "weak-cons" "weak-pair?"
 "with-input-from-file" "with-output-to-file" "write" "write-char" "zero?"])
 
-(tset M :guile (a.concat M.default [
- "ice-9"
+(tset dicts :guile (a.concat 
+ (. dicts :default) 
+ [ "ice-9"
  "srfi"
  "debug"
  "expect"

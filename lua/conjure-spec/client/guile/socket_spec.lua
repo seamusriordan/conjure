@@ -8,6 +8,7 @@ local guile = require("conjure.client.guile.socket")
 local config = require("conjure.config")
 local fake_socket = require("conjure-spec.client.guile.fake-socket")
 local fake_search = require("conjure-spec.fake-lexical-search")
+local fake_tree_sitter_queries = require("conjure-spec.fake-tree-sitter-queries")
 require("conjure-spec.assertions")
 local completion_code_define_match = "%(define%* %(%%conjure:get%-guile%-completions"
 local function set_repl_connected(repl)
@@ -17,6 +18,7 @@ end
 local function _2_()
   package.loaded["conjure.remote.socket"] = fake_socket
   package.loaded["conjure.lexical-search"] = fake_search
+  package.loaded["conjure.tree-sitter-queries"] = fake_tree_sitter_queries
   local function _3_()
     local function _4_()
       return assert.are.equal(nil, guile.context("(print \"Hello World\")"))
