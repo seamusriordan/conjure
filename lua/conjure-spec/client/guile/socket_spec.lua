@@ -55,7 +55,7 @@ local function _2_()
   end
   describe("context extraction", _3_)
   local function _12_()
-    config.merge({client = {guile = {socket = {pipename = "mock-pipe", ["host-port"] = nil}}}}, {["overwrite?"] = true})
+    config.merge({client = {guile = {socket = {pipename = "fake-pipe", host_port = nil}}}}, {["overwrite?"] = true})
     local function _13_()
       local calls = {}
       local spy_send
@@ -143,7 +143,7 @@ local function _2_()
   end
   describe("module initialization", _12_)
   local function _22_()
-    config.merge({client = {guile = {socket = {pipename = "mock-pipe", ["host-port"] = nil}}}}, {["overwrite?"] = true})
+    config.merge({client = {guile = {socket = {pipename = "fake-pipe", host_port = nil}}}}, {["overwrite?"] = true})
     local function _23_()
       local calls = {}
       local spy_send
@@ -292,7 +292,7 @@ local function _2_()
   describe("completions", _22_)
   local function _44_()
     local function _45_()
-      config.merge({client = {guile = {socket = {pipename = "mock-pipe", ["host-port"] = nil, ["enable-completions"] = false}}}}, {["overwrite?"] = true})
+      config.merge({client = {guile = {socket = {pipename = "fake-pipe", host_port = nil, enable_completions = false}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
       local function _46_(call)
@@ -314,7 +314,7 @@ local function _2_()
     end
     it("Does not load completion code when completions disabled in config", _45_)
     local function _48_()
-      config.merge({client = {guile = {socket = {pipename = "mock-pipe", ["host-port"] = nil, ["enable-completions"] = true}}}}, {["overwrite?"] = true})
+      config.merge({client = {guile = {socket = {pipename = "fake-pipe", host_port = nil, enable_completions = true}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
       local function _49_(call)
@@ -334,7 +334,7 @@ local function _2_()
     end
     it("Does load completion code when completions enabled in config", _48_)
     local function _50_()
-      config.merge({client = {guile = {socket = {pipename = "mock-pipe", ["host-port"] = nil, ["enable-completions"] = false}}}}, {["overwrite?"] = true})
+      config.merge({client = {guile = {socket = {pipename = "fake-pipe", host_port = nil, enable_completions = false}}}}, {["overwrite?"] = true})
       local calls = {}
       local spy_send
       local function _51_(call)

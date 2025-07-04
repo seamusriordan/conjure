@@ -48,7 +48,7 @@
     (describe "module initialization"
       (fn []
         (config.merge {:client {:guile {:socket
-                        {:pipename "mock-pipe" :host-port nil}}}}
+                        {:pipename "fake-pipe" :host_port nil}}}}
                       {:overwrite? true})
         (it "initializes (guile-user) when eval-str called on new repl in nil context"
             (fn []
@@ -130,7 +130,7 @@
     (describe "completions"
       (fn [] 
         (config.merge {:client {:guile {:socket
-                         {:pipename "mock-pipe" :host-port nil}}}}
+                         {:pipename "fake-pipe" :host_port nil}}}}
                       {:overwrite? true})
         (it "Does not execute completions in REPL when not connected"
             (fn []
@@ -242,8 +242,8 @@
         (it "Does not load completion code when completions disabled in config"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "mock-pipe" :host-port nil
-                                :enable-completions false }}}}
+                               {:pipename "fake-pipe" :host_port nil
+                                :enable_completions false }}}}
                             {:overwrite? true})
               (let [
                     calls []
@@ -263,8 +263,8 @@
         (it "Does load completion code when completions enabled in config"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "mock-pipe" :host-port nil
-                                :enable-completions true}}}}
+                               {:pipename "fake-pipe" :host_port nil
+                                :enable_completions true}}}}
                             {:overwrite? true})
               (let [
                     calls []
@@ -285,8 +285,8 @@
         (it "Does not execute completions in REPL when connected but completions disabled"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "mock-pipe" :host-port nil
-                                :enable-completions false}}}}
+                               {:pipename "fake-pipe" :host_port nil
+                                :enable_completions false}}}}
                             {:overwrite? true})
               (let [
                     calls []
