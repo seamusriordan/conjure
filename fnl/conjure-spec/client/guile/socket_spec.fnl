@@ -2,9 +2,9 @@
 (local assert (require :luassert.assert))
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
-(local fake-socket (require :conjure-spec.client.guile.fake-socket))
-(local fake-search (require :conjure-spec.fake-lexical-search))
-(local fake-tree-sitter-queries (require :conjure-spec.fake-tree-sitter-queries))
+(local mock-socket (require :conjure-spec.client.guile.mock-socket))
+(local mock-search (require :conjure-spec.mock-lexical-search))
+(local mock-tree-sitter-queries (require :conjure-spec.mock-tree-sitter-queries))
 (require :conjure-spec.assertions)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
@@ -15,9 +15,9 @@
 
 (describe "conjure.client.guile.socket"
   (fn []
-    (tset package.loaded "conjure.remote.socket" fake-socket)
-    (tset package.loaded "conjure.lexical-search" fake-search)
-    (tset package.loaded "conjure.tree-sitter-queries" fake-tree-sitter-queries)
+    (tset package.loaded "conjure.remote.socket" mock-socket)
+    (tset package.loaded "conjure.lexical-search" mock-search)
+    (tset package.loaded "conjure.tree-sitter-queries" mock-tree-sitter-queries)
     (describe "context extraction"
       (fn [] 
         (it "returns nil for hello world"
@@ -48,19 +48,19 @@
     (describe "module initialization"
       (fn []
         (config.merge {:client {:guile {:socket
-                        {:pipename "fake-pipe" :host-port nil}}}}
+                        {:pipename "mock-pipe" :host-port nil}}}}
                       {:overwrite? true})
         (it "initializes (guile-user) when eval-str called on new repl in nil context"
             (fn []
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     expected-code "(print \"Hello world\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code expected-code :context nil})
                 (guile.disconnect)
 
@@ -73,12 +73,12 @@
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     expected-code "(print \"Hello second call\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code "(first-call)" :context nil})
                 (guile.eval-str {:code expected-code :context nil})
                 (guile.disconnect)
@@ -90,16 +90,16 @@
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     expected-code "(print \"Hello second call\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code "(first-call)" :context nil})
                 (guile.disconnect)
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code expected-code :context nil})
                 (guile.disconnect)
 
@@ -112,13 +112,13 @@
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     expected-module "a-module"
                     expected-code "(print \"Hello second call\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code "(first-call)" :context nil})
                 (guile.eval-str {:code expected-code :context expected-module})
                 (guile.disconnect)
@@ -130,19 +130,19 @@
     (describe "completions"
       (fn [] 
         (config.merge {:client {:guile {:socket
-                         {:pipename "fake-pipe" :host-port nil}}}}
+                         {:pipename "mock-pipe" :host-port nil}}}}
                       {:overwrite? true})
         (it "Does not execute completions in REPL when not connected"
             (fn []
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-socket.set-mock-repl mock-repl)
 
-                (guile.completions {:cb fake-callback :prefix "something"})
+                (guile.completions {:cb mock-callback :prefix "something"})
 
                 (assert.same [] calls)
                 (assert.same [] (. callback-results 1)))))
@@ -152,12 +152,12 @@
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-socket.set-mock-repl mock-repl)
 
-                (guile.completions {:cb fake-callback :prefix "define"})
+                (guile.completions {:cb mock-callback :prefix "define"})
 
                 (assert.same "define" (. (. callback-results 1) 1)))))
 
@@ -166,14 +166,14 @@
               (let [
                     calls []
                     spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
-                (guile.completions {:cb fake-callback :prefix "dela"})
+                (set-repl-connected mock-repl)
+                (guile.completions {:cb mock-callback :prefix "dela"})
                 (let [completion-call (. calls 3)]
                   ((. completion-call :callback) [{:out "(\"dela-something\")"}])
                   (guile.disconnect)
@@ -185,15 +185,15 @@
               (let [
                     calls []
                     spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-search.set-fake-search-results ["delalex"])
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-search.set-mock-search-results ["delalex"])
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
-                (guile.completions {:cb fake-callback :prefix "dela"})
+                (set-repl-connected mock-repl)
+                (guile.completions {:cb mock-callback :prefix "dela"})
                 ((. (. calls 3) :callback) [{:out "(\"dela-something\")"}])
                 (guile.disconnect)
 
@@ -204,16 +204,16 @@
               (let [
                     calls []
                     spy-send (fn [call callback] (table.insert calls {:code call :callback callback}))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     expected-code "%(%%conjure:get%-guile%-completions \"dela\"%)"
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-search.set-fake-search-results ["delay"])
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-search.set-mock-search-results ["delay"])
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
-                (guile.completions {:cb fake-callback :prefix "dela"})
+                (set-repl-connected mock-repl)
+                (guile.completions {:cb mock-callback :prefix "dela"})
                 ((. (. calls 3) :callback) [{:out "(\"delay\")"}])
                 (guile.disconnect)
 
@@ -224,14 +224,14 @@
               (let [
                     sent-callbacks []
                     spy-send (fn [_ callback] (table.insert sent-callbacks callback))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
-                (guile.completions {:cb fake-callback :prefix "fu"})
+                (set-repl-connected mock-repl)
+                (guile.completions {:cb mock-callback :prefix "fu"})
                 ((. sent-callbacks 3) [{:out "(\"fun\" \"func\" \"future\")"}])
                 (guile.disconnect)
 
@@ -242,18 +242,18 @@
         (it "Does not load completion code when completions disabled in config"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "fake-pipe" :host-port nil
+                               {:pipename "mock-pipe" :host-port nil
                                 :enable-completions false }}}}
                             {:overwrite? true})
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     expected-code "(print \"Hello world\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code expected-code :context nil})
                 (guile.disconnect)
 
@@ -263,18 +263,18 @@
         (it "Does load completion code when completions enabled in config"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "fake-pipe" :host-port nil
+                               {:pipename "mock-pipe" :host-port nil
                                 :enable-completions true}}}}
                             {:overwrite? true})
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl (fake-socket.build-fake-repl spy-send)
+                    mock-repl (mock-socket.build-mock-repl spy-send)
                     expected-code "(print \"Hello world\")"]
-                (fake-socket.set-fake-repl fake-repl)
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
+                (set-repl-connected mock-repl)
                 (guile.eval-str {:code expected-code :context nil})
                 (guile.disconnect)
 
@@ -285,20 +285,20 @@
         (it "Does not execute completions in REPL when connected but completions disabled"
             (fn []
               (config.merge {:client {:guile {:socket
-                               {:pipename "fake-pipe" :host-port nil
+                               {:pipename "mock-pipe" :host-port nil
                                 :enable-completions false}}}}
                             {:overwrite? true})
               (let [
                     calls []
                     spy-send (fn [call] (table.insert calls call))
-                    fake-repl {:send spy-send :status nil :destroy (fn [])}
+                    mock-repl {:send spy-send :status nil :destroy (fn [])}
                     callback-results  []
-                    fake-callback (fn [result] (table.insert callback-results result))]
-                (fake-socket.set-fake-repl fake-repl)
+                    mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
-                (set-repl-connected fake-repl)
-                (guile.completions {:cb fake-callback :prefix "define"})
+                (set-repl-connected mock-repl)
+                (guile.completions {:cb mock-callback :prefix "define"})
                 (guile.disconnect)
 
                 (assert.same [] calls)
