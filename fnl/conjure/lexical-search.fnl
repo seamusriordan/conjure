@@ -11,8 +11,12 @@
       (a.some #(n:equal $1) nodes)))
 
 (fn get-scope-parent [node scopes]
-  (if (or (= nil node) (= nil (node:parent))) nil
-      (contains-node scopes (node:parent)) (node:parent)
+  (if (or (= nil node) (= nil (node:parent)))
+      nil
+
+      (contains-node scopes (node:parent))
+      (node:parent)
+
       (get-scope-parent (node:parent) scopes)))
 
 (fn get-nth-scope-parent [n node scopes]
@@ -39,7 +43,8 @@
 
 (fn is-in-scope [target scope]
   (or (= nil scope) ; nil implies global scope
-      (scope:equal target) (vim.treesitter.is_ancestor scope target)))
+      (scope:equal target) 
+      (vim.treesitter.is_ancestor scope target)))
 
 (fn get-node-text [node buffer meta]
   (let [base-text (vim.treesitter.get_node_text node buffer)
