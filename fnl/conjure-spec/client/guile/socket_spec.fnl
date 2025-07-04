@@ -157,7 +157,7 @@
 
                 (guile.completions {:cb fake-callback :prefix "define"})
 
-                (assert.same "define" (. (. callback-results 1) 2)))))
+                (assert.same "define" (. (. callback-results 1) 1)))))
 
         (it "Executes completions in REPL for prefix dela with result delay and dela-something"
             (fn []

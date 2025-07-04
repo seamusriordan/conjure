@@ -178,7 +178,7 @@ local function _2_()
       fake_callback = _28_
       fake_socket["set-fake-repl"](fake_repl)
       guile.completions({cb = fake_callback, prefix = "define"})
-      return assert.same("define", callback_results[1][2])
+      return assert.same("define", callback_results[1][1])
     end
     it("Gets built-in results for define when execute completions and REPL not connected", _26_)
     local function _29_()
