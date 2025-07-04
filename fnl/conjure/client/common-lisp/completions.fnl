@@ -144,10 +144,7 @@
     . (sym_lit)
     . (list_lit)
     . (list_lit 
-        (list_lit
-;          . (sym_lit) @global.define  ; need to deal with accessor, etc
-;          (#set! prefix \":\")
-        )
+        (list_lit)
       )
     (#eq? @_dc \"defclass\"))
   @local.scope
@@ -155,8 +152,6 @@
   (list_lit
     . (sym_lit) @_ds
     . (sym_lit) 
-;    . (sym_lit) @global.define* 
-;    (#set! prefix \":\")
     (#eq? @_ds \"defstruct\"))
   @local.scope
 ")
