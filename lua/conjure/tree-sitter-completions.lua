@@ -3,12 +3,12 @@ local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
-local log = autoload("conjure.log")
 local ts = autoload("conjure.tree-sitter")
 local util = autoload("conjure.util")
 local res = autoload("conjure.resources")
 local M = define("conjure.tree-sitter-completions")
 local symbol_query_path_template = "queries/%s/cmpl.scm"
+local query_cache = {}
 local function contains_node(nodes, n)
   if (nil == n) then
     return false
@@ -92,13 +92,31 @@ local function get_completions_for_query(query)
   end
   return util.dedup(results)
 end
-local function get_completion_query(ts_lang, cmpl_resource)
+local function build_completion_query(ts_lang, cmpl_resource)
   local query_path = string.format(symbol_query_path_template, cmpl_resource)
   local query_text = res["get-resource-contents"](query_path)
   if query_text then
     return vim.treesitter.query.parse(ts_lang, query_text)
   else
     return nil
+  end
+end
+local function get_cached_completion_query(cmpl_resource)
+  local cached_query = query_cache[cmpl_resource]
+  if cached_query then
+    return cached_query
+  else
+    return nil
+  end
+end
+local function get_completion_query(ts_lang, cmpl_resource)
+  local cached_query = get_cached_completion_query(cmpl_resource)
+  if cached_query then
+    return cached_query
+  else
+    local query = build_completion_query(ts_lang, cmpl_resource)
+    query_cache[cmpl_resource] = query
+    return query
   end
 end
 M["get-completions-at-cursor"] = function(ts_lang, cmpl_resource)

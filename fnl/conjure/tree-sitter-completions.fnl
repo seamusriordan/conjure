@@ -1,6 +1,5 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
-(local log (autoload :conjure.log))
 (local ts (autoload :conjure.tree-sitter))
 (local util (autoload :conjure.util))
 (local res (autoload :conjure.resources))
@@ -8,6 +7,8 @@
 (local M (define :conjure.tree-sitter-completions))
 
 (local symbol-query-path-template "queries/%s/cmpl.scm")
+
+(local query-cache {})
 
 (fn contains-node [nodes n]
   (if (= nil n)
@@ -81,12 +82,26 @@
 
     (util.dedup results)))
 
-(fn get-completion-query [ts-lang cmpl-resource]
+(fn build-completion-query [ts-lang cmpl-resource]
   (let [query-path (string.format symbol-query-path-template cmpl-resource)
         query-text (res.get-resource-contents query-path) ]
     (if query-text
       (vim.treesitter.query.parse ts-lang query-text)
       nil)))
+
+(fn get-cached-completion-query [cmpl-resource]
+  (let [cached-query (. query-cache cmpl-resource)]
+    (if cached-query
+      cached-query
+      nil)))
+
+(fn get-completion-query [ts-lang cmpl-resource]
+  (let [cached-query (get-cached-completion-query cmpl-resource)]
+    (if cached-query
+      cached-query
+      (let [query (build-completion-query ts-lang cmpl-resource)]
+        (tset query-cache cmpl-resource query)
+        query))))
 
 (fn M.get-completions-at-cursor [ts-lang cmpl-resource]
   (let [query (get-completion-query ts-lang cmpl-resource)]

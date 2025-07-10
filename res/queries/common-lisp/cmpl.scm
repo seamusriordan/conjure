@@ -34,14 +34,7 @@
   (sym_lit) @global.define
   ((sym_lit) @local.bind)*
   (list_lit
-    (sym_lit) @local.bind
-    )*
-  (list_lit
-    (list_lit
-      . 
-      (sym_lit) @local.define
-      )
-    )*
+    (sym_lit) @local.bind)*
   (#match? @_def "^(cl:)?(defsetf)$"))
 @local.scope
 
