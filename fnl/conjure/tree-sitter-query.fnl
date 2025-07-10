@@ -2,8 +2,12 @@
 (local a (autoload :conjure.nfnl.core))
 (local ts (autoload :conjure.tree-sitter))
 (local util (autoload :conjure.util))
+(local res (autoload :conjure.resources))
+(local log (autoload :conjure.log))
 
-(local M (define :conjure.lexical-search))
+(local M (define :conjure.tree-sitter-query))
+
+(local symbol-query-path-template "queries/%s/scopes.scm")
 
 (fn contains-node [nodes n]
   (if (= nil n)
@@ -53,7 +57,7 @@
         (.. prefix base-text)
         base-text)))
 
-(fn get-lexical-captures-at-cursor [query]
+(fn get-scoped-symbols-at-cursor [query]
   (let [buffer         (vim.api.nvim_get_current_buf)
         cursor-node    (ts.get-node-at-cursor) 
         (row _)        (unpack (vim.api.nvim_win_get_cursor 0))
@@ -77,8 +81,18 @@
 
     (util.dedup results)))
 
-(fn M.get-lexical-captures [lang raw-query]
-  (let [query (vim.treesitter.query.parse lang raw-query)]
-    (get-lexical-captures-at-cursor query)))
+(fn get-scoped-symbol-query [lang ts-lang]
+  (let [query-path (string.format symbol-query-path-template lang)
+        query-text (res.get-resource-contents query-path) ]
+    (if query-text
+      (vim.treesitter.query.parse ts-lang query-text)
+      nil)))
+
+(fn M.get-scoped-symbols [lang ts-lang-key]
+  (let [ts-lang (or ts-lang-key lang)
+        query (get-scoped-symbol-query lang ts-lang)]
+    (if query
+      (get-scoped-symbols-at-cursor query)
+      [])))
 
 M

@@ -3,10 +3,9 @@ local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
-local ls = autoload("conjure.lexical-search")
 local scheme_dict = autoload("conjure.client.scheme.dict")
 local util = autoload("conjure.util")
-local tsq = autoload("conjure.tree-sitter-queries")
+local tsq = autoload("conjure.tree-sitter-query")
 local M = define("conjure.client.guile.completions")
 M["guile-repl-completion-code"] = "(use-modules ((ice-9 readline) \n      #:select (apropos-completion-function)\n      #:prefix %conjure:))\n  (define* (%conjure:get-guile-completions prefix #:optional (continued #f))\n      (let ((suggestion (%conjure:apropos-completion-function prefix continued)))\n        (if (not suggestion)\n          '()\n          (cons suggestion (%conjure:get-guile-completions prefix #t)))))"
 M["build-completion-request"] = function(prefix)
@@ -32,6 +31,6 @@ M["format-results"] = function(rs)
   return cmpls
 end
 M["get-non-repl-completions"] = function()
-  return util["concat-nodup"](ls["get-lexical-captures"]("scheme", tsq["get-completion-query"]("scheme")), scheme_dict["get-dict"]("guile"))
+  return util["concat-nodup"](tsq["get-scoped-symbols"]("scheme"), scheme_dict["get-dict"]("guile"))
 end
 return M

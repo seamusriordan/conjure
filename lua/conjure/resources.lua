@@ -1,11 +1,10 @@
--- [nfnl] fnl/conjure/tree-sitter-queries.fnl
+-- [nfnl] fnl/conjure/resources.fnl
 local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
-local a = autoload("conjure.nfnl.core")
 local log = autoload("conjure.log")
-local M = define("conjure.tree-sitter-queries")
-local completion_query_path_template = "queries/%s/cmpl.scm"
+local M = define("conjure.resources")
+local resource_prefix = "res/"
 local cache = {}
 local function read_and_cache_file_contents(path)
   log.dbg({(path .. " query not cached - reading")})
@@ -30,13 +29,13 @@ local function get_cached_file_contents(path)
     return read_and_cache_file_contents(path)
   end
 end
-M["get-completion-query"] = function(lang)
-  local query_path = string.format(completion_query_path_template, lang)
-  local paths = vim.api.nvim_get_runtime_file(query_path, false)
-  if (#paths > 0) then
-    return get_cached_file_contents(paths[1])
+M["get-resource-contents"] = function(path)
+  local resource_path = (resource_prefix .. path)
+  local file_paths = vim.api.nvim_get_runtime_file(resource_path, false)
+  if (#file_paths > 0) then
+    return get_cached_file_contents(file_paths[1])
   else
-    return ""
+    return nil
   end
 end
 return M

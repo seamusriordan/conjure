@@ -1,10 +1,9 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
-(local a (autoload :conjure.nfnl.core))
 (local log (autoload :conjure.log))
 
-(local M (define :conjure.tree-sitter-queries))
+(local M (define :conjure.resources))
 
-(local completion-query-path-template "queries/%s/cmpl.scm")
+(local resource-prefix "res/")
 
 (var cache {})
 
@@ -22,11 +21,11 @@
     (. cache path)
     (read-and-cache-file-contents path)))
 
-(fn M.get-completion-query [lang]
-  (let [query-path (string.format completion-query-path-template lang)
-        paths (vim.api.nvim_get_runtime_file query-path false)]
-    (if (> (length paths) 0)
-      (get-cached-file-contents (. paths 1)) 
-      "")))
+(fn M.get-resource-contents [path]
+  (let [resource-path (.. resource-prefix path)
+        file-paths (vim.api.nvim_get_runtime_file resource-path false)]
+    (if (> (length file-paths) 0)
+      (get-cached-file-contents (. file-paths 1)) 
+      nil)))
 
 M
