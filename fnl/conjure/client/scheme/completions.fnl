@@ -1,11 +1,9 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
-(local a (autoload :conjure.aniseed.core))
 (local dict (autoload :conjure.client.scheme.dict))
-(local log (autoload :conjure.log))
 (local config (autoload :conjure.config))
 (local dict (autoload :conjure.client.scheme.dict))
 (local util (autoload :conjure.util))
-(local tsq (autoload :conjure.tree-sitter-query))
+(local tsc (autoload :conjure.tree-sitter-completions))
 
 (local M (define :conjure.client.scheme.completions))
 
@@ -22,7 +20,7 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         built-in-symbols (dict.get-dict dict-key) ]
     (util.concat-nodup
-      (tsq.get-scoped-symbols :scheme)
+      (tsc.get-completions-at-cursor :scheme :scheme)
       built-in-symbols)))
 
 M

@@ -1,14 +1,14 @@
--- [nfnl] fnl/conjure/tree-sitter-query.fnl
+-- [nfnl] fnl/conjure/tree-sitter-completions.fnl
 local _local_1_ = require("conjure.nfnl.module")
 local autoload = _local_1_["autoload"]
 local define = _local_1_["define"]
 local a = autoload("conjure.nfnl.core")
+local log = autoload("conjure.log")
 local ts = autoload("conjure.tree-sitter")
 local util = autoload("conjure.util")
 local res = autoload("conjure.resources")
-local log = autoload("conjure.log")
-local M = define("conjure.tree-sitter-query")
-local symbol_query_path_template = "queries/%s/scopes.scm"
+local M = define("conjure.tree-sitter-completions")
+local symbol_query_path_template = "queries/%s/cmpl.scm"
 local function contains_node(nodes, n)
   if (nil == n) then
     return false
@@ -71,7 +71,7 @@ local function get_node_text(node, buffer, meta)
     return base_text
   end
 end
-local function get_scoped_symbols_at_cursor(query)
+local function get_completions_for_query(query)
   local buffer = vim.api.nvim_get_current_buf()
   local cursor_node = ts["get-node-at-cursor"]()
   local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
@@ -92,8 +92,8 @@ local function get_scoped_symbols_at_cursor(query)
   end
   return util.dedup(results)
 end
-local function get_scoped_symbol_query(lang, ts_lang)
-  local query_path = string.format(symbol_query_path_template, lang)
+local function get_completion_query(ts_lang, cmpl_resource)
+  local query_path = string.format(symbol_query_path_template, cmpl_resource)
   local query_text = res["get-resource-contents"](query_path)
   if query_text then
     return vim.treesitter.query.parse(ts_lang, query_text)
@@ -101,11 +101,10 @@ local function get_scoped_symbol_query(lang, ts_lang)
     return nil
   end
 end
-M["get-scoped-symbols"] = function(lang, ts_lang_key)
-  local ts_lang = (ts_lang_key or lang)
-  local query = get_scoped_symbol_query(lang, ts_lang)
+M["get-completions-at-cursor"] = function(ts_lang, cmpl_resource)
+  local query = get_completion_query(ts_lang, cmpl_resource)
   if query then
-    return get_scoped_symbols_at_cursor(query)
+    return get_completions_for_query(query)
   else
     return {}
   end

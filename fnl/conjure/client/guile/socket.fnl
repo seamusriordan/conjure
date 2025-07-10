@@ -249,10 +249,10 @@
     {:desc "Disconnect from the REPL"}))
 
 (fn generate-completions [opts]
-   (let [non-repl-completions (cmpl.get-non-repl-completions)
+   (let [static-completions (cmpl.get-static-completions)
          prefix-pattern (.. "^" (. opts :prefix))
          prefix-filter (fn [s] (string.match s prefix-pattern))
-         non-repl-suggestions (a.filter prefix-filter non-repl-completions)]
+         static-suggestions (a.filter prefix-filter static-completions)]
 
      (if (connected?)
        (let [code (cmpl.build-completion-request opts.prefix)
@@ -261,7 +261,7 @@
                (let [cmpl-list (cmpl.format-results results)]
                  ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
                  ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
-                 (opts.cb (util.concat-nodup non-repl-suggestions cmpl-list))
+                 (opts.cb (util.concat-nodup static-suggestions cmpl-list))
                  ; return the list of completions
                  ))
             ]
@@ -269,7 +269,7 @@
          (a.assoc opts :on-result result-fn)
          (a.assoc opts :passive? true)
          (M.eval-str opts))
-       (opts.cb non-repl-suggestions))))
+       (opts.cb static-suggestions))))
 
 (fn M.completions [opts]
   ;(when (not= nil opts)

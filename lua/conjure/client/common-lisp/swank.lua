@@ -291,13 +291,13 @@ local function format_for_cmpl(rs)
   return cmpls
 end
 local function completions(opts)
-  local lexical_completions = cmpl["get-lexical-completions"]()
+  local static_completions = cmpl["get-static-completions"]()
   if connected_3f() then
     local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
     local result_fn
     local function _41_(results)
       local parsed_results = format_for_cmpl(results)
-      local cmpl_list = util["concat-nodup"](lexical_completions, parsed_results)
+      local cmpl_list = util["concat-nodup"](static_completions, parsed_results)
       return opts.cb(cmpl_list)
     end
     result_fn = _41_
@@ -306,7 +306,7 @@ local function completions(opts)
     a.assoc(opts, "passive?", true)
     return eval_str(opts)
   else
-    return opts.cb(lexical_completions)
+    return opts.cb(static_completions)
   end
 end
 return {["buf-suffix"] = buf_suffix, ["comment-prefix"] = comment_prefix, ["form-node?"] = form_node_3f, context = context, disconnect = disconnect, connect = connect, ["parse-result"] = parse_result, ["eval-str"] = eval_str, ["doc-str"] = doc_str, ["eval-file"] = eval_file, ["on-filetype"] = on_filetype, ["on-load"] = on_load, ["on-exit"] = on_exit, completions = completions}

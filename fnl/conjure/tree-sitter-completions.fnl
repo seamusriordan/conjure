@@ -1,13 +1,13 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
 (local a (autoload :conjure.nfnl.core))
+(local log (autoload :conjure.log))
 (local ts (autoload :conjure.tree-sitter))
 (local util (autoload :conjure.util))
 (local res (autoload :conjure.resources))
-(local log (autoload :conjure.log))
 
-(local M (define :conjure.tree-sitter-query))
+(local M (define :conjure.tree-sitter-completions))
 
-(local symbol-query-path-template "queries/%s/scopes.scm")
+(local symbol-query-path-template "queries/%s/cmpl.scm")
 
 (fn contains-node [nodes n]
   (if (= nil n)
@@ -57,7 +57,7 @@
         (.. prefix base-text)
         base-text)))
 
-(fn get-scoped-symbols-at-cursor [query]
+(fn get-completions-for-query [query]
   (let [buffer         (vim.api.nvim_get_current_buf)
         cursor-node    (ts.get-node-at-cursor) 
         (row _)        (unpack (vim.api.nvim_win_get_cursor 0))
@@ -81,18 +81,17 @@
 
     (util.dedup results)))
 
-(fn get-scoped-symbol-query [lang ts-lang]
-  (let [query-path (string.format symbol-query-path-template lang)
+(fn get-completion-query [ts-lang cmpl-resource]
+  (let [query-path (string.format symbol-query-path-template cmpl-resource)
         query-text (res.get-resource-contents query-path) ]
     (if query-text
       (vim.treesitter.query.parse ts-lang query-text)
       nil)))
 
-(fn M.get-scoped-symbols [lang ts-lang-key]
-  (let [ts-lang (or ts-lang-key lang)
-        query (get-scoped-symbol-query lang ts-lang)]
+(fn M.get-completions-at-cursor [ts-lang cmpl-resource]
+  (let [query (get-completion-query ts-lang cmpl-resource)]
     (if query
-      (get-scoped-symbols-at-cursor query)
+      (get-completions-for-query query)
       [])))
 
 M

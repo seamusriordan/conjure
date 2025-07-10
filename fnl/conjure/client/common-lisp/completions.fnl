@@ -1,11 +1,11 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
-(local tsq (autoload :conjure.tree-sitter-query))
+(local tsc (autoload :conjure.tree-sitter-completions))
 
 (local M (define :conjure.client.common-lisp.completions))
 
-(fn M.get-lexical-completions []
-  (tsq.get-scoped-symbols
-    :common-lisp
-    :commonlisp )); This naming convention is required for treesitter
+(fn M.get-static-completions []
+  (tsc.get-completions-at-cursor
+    :commonlisp ; This is the naming convention treesitter uses
+    :common-lisp ))
 
 M

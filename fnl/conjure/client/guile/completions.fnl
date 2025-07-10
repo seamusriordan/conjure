@@ -2,7 +2,7 @@
 (local a (autoload :conjure.nfnl.core))
 (local scheme-dict (autoload :conjure.client.scheme.dict))
 (local util (autoload :conjure.util))
-(local tsq (autoload :conjure.tree-sitter-query))
+(local tsc (autoload :conjure.tree-sitter-completions))
 
 (local M (define :conjure.client.guile.completions))
 
@@ -29,9 +29,9 @@
     (table.insert cmpls 1 last)
     cmpls))
 
-(fn M.get-non-repl-completions []
+(fn M.get-static-completions []
   (util.concat-nodup
-    (tsq.get-scoped-symbols :scheme)
+    (tsc.get-completions-at-cursor :scheme :scheme)
     (scheme-dict.get-dict :guile)))
 
 M

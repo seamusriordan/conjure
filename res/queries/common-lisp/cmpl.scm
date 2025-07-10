@@ -39,7 +39,7 @@
   (list_lit
     (list_lit
       . 
-      (sym_lit) @local.bind
+      (sym_lit) @local.define
       )
     )*
   (#match? @_def "^(cl:)?(defsetf)$"))
