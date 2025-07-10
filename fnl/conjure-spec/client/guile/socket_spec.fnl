@@ -3,8 +3,7 @@
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
 (local mock-socket (require :conjure-spec.client.guile.mock-socket))
-(local mock-search (require :conjure-spec.mock-lexical-search))
-(local mock-tree-sitter-queries (require :conjure-spec.mock-tree-sitter-queries))
+(local mock-tsc (require :conjure-spec.mock-tree-sitter-completions))
 (require :conjure-spec.assertions)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
@@ -16,8 +15,7 @@
 (describe "conjure.client.guile.socket"
   (fn []
     (tset package.loaded "conjure.remote.socket" mock-socket)
-    (tset package.loaded "conjure.lexical-search" mock-search)
-    (tset package.loaded "conjure.tree-sitter-queries" mock-tree-sitter-queries)
+    (tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
     (describe "context extraction"
       (fn [] 
         (it "returns nil for hello world"
@@ -188,7 +186,7 @@
                     mock-repl {:send spy-send :status nil :destroy (fn [])}
                     callback-results  []
                     mock-callback (fn [result] (table.insert callback-results result))]
-                (mock-search.set-mock-search-results ["delalex"])
+                (mock-tsc.set-mock-completions ["delalex"])
                 (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})
@@ -208,7 +206,7 @@
                     expected-code "%(%%conjure:get%-guile%-completions \"dela\"%)"
                     callback-results  []
                     mock-callback (fn [result] (table.insert callback-results result))]
-                (mock-search.set-mock-search-results ["delay"])
+                (mock-tsc.set-mock-completions ["delay"])
                 (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})

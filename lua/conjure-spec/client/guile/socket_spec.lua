@@ -7,8 +7,7 @@ local assert = require("luassert.assert")
 local guile = require("conjure.client.guile.socket")
 local config = require("conjure.config")
 local mock_socket = require("conjure-spec.client.guile.mock-socket")
-local mock_search = require("conjure-spec.mock-lexical-search")
-local mock_tree_sitter_queries = require("conjure-spec.mock-tree-sitter-queries")
+local mock_tsc = require("conjure-spec.mock-tree-sitter-completions")
 require("conjure-spec.assertions")
 local completion_code_define_match = "%(define%* %(%%conjure:get%-guile%-completions"
 local function set_repl_connected(repl)
@@ -17,8 +16,7 @@ local function set_repl_connected(repl)
 end
 local function _2_()
   package.loaded["conjure.remote.socket"] = mock_socket
-  package.loaded["conjure.lexical-search"] = mock_search
-  package.loaded["conjure.tree-sitter-queries"] = mock_tree_sitter_queries
+  package.loaded["conjure.tree-sitter-completions"] = mock_tsc
   local function _3_()
     local function _4_()
       return assert.are.equal(nil, guile.context("(print \"Hello World\")"))
@@ -227,7 +225,7 @@ local function _2_()
         return table.insert(callback_results, result)
       end
       mock_callback = _36_
-      mock_search["set-mock-search-results"]({"delalex"})
+      mock_tsc["set-mock-completions"]({"delalex"})
       mock_socket["set-mock-repl"](mock_repl)
       guile.connect({})
       set_repl_connected(mock_repl)
@@ -255,7 +253,7 @@ local function _2_()
         return table.insert(callback_results, result)
       end
       mock_callback = _40_
-      mock_search["set-mock-search-results"]({"delay"})
+      mock_tsc["set-mock-completions"]({"delay"})
       mock_socket["set-mock-repl"](mock_repl)
       guile.connect({})
       set_repl_connected(mock_repl)
