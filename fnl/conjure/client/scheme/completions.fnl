@@ -20,10 +20,9 @@
         dict-key (get-dict-key-from-stdio-command stdio-command)
         dict (dict.get-dict dict-key) 
         prefix-pattern (.. "^" (string.gsub prefix "%%" "%"))
-        prefix-filter (fn [s] (string.match s prefix-pattern))
-        dict-suggestions (a.filter prefix-filter dict)]
-    (util.concat-nodup
+        prefix-filter (fn [s] (string.match s prefix-pattern))]
+    (a.filter prefix-filter (util.concat-nodup
       (tsc.get-completions-at-cursor :scheme :scheme)
-      dict-suggestions)))
+      dict))))
 
 M

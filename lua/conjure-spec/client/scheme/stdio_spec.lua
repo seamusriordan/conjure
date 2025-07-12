@@ -32,9 +32,9 @@ local function _2_()
       completion_callback = _7_
       mock_tsc["set-mock-completions"]({"delta", "other"})
       stdio.completions({prefix = "delt", cb = completion_callback})
-      return assert.same({"delta", "other"}, completion_results[1])
+      return assert.same({"delta"}, completion_results[1])
     end
-    it("returns delta other for prefix delt when treesitter completion delta and other", _6_)
+    it("returns delta for prefix delt when treesitter completion delta and other", _6_)
     local function _8_()
       local completion_results = {}
       local completion_callback

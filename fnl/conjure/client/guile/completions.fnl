@@ -25,10 +25,9 @@
 (fn M.get-static-completions [prefix]
   (let [dict (scheme-dict.get-dict :guile)   
         prefix-pattern (.. "^" (string.gsub prefix "%%" "%"))
-        prefix-filter (fn [s] (string.match s prefix-pattern))
-        dict-suggestions (a.filter prefix-filter dict)]
-    (util.concat-nodup
+        prefix-filter (fn [s] (string.match s prefix-pattern))]
+    (a.filter prefix-filter (util.concat-nodup
       (tsc.get-completions-at-cursor :scheme :scheme)
-      dict-suggestions)))
+      dict))))
 
 M

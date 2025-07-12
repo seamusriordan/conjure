@@ -39,7 +39,6 @@ M["get-static-completions"] = function(prefix)
     return string.match(s, prefix_pattern)
   end
   prefix_filter = _3_
-  local dict_suggestions = a.filter(prefix_filter, dict)
-  return util["concat-nodup"](tsc["get-completions-at-cursor"]("scheme", "scheme"), dict_suggestions)
+  return a.filter(prefix_filter, util["concat-nodup"](tsc["get-completions-at-cursor"]("scheme", "scheme"), dict))
 end
 return M
