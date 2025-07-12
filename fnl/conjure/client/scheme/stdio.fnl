@@ -17,7 +17,8 @@
      {:command "mit-scheme"
       ;; Match "]=> " or "error> "
       :prompt_pattern "[%]e][=r]r?o?r?> "
-      :value_prefix_pattern "^;Value: "}}}})
+      :value_prefix_pattern "^;Value: "
+      :enable_completions true}}}})
 
 (when (config.get-in [:mapping :enable_defaults])
   (config.merge
@@ -152,14 +153,19 @@
 (fn on-exit []
   (stop))
 
+(fn completions-enabled? []
+  (config.get-in [:client :scheme :stdio :enable_completions]))
+
 (fn completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
-   (let [all-completions (cmpl.get-completions)
-         prefix-pattern (.. "^" (. opts :prefix))
-         prefix-filter (fn [s] (string.match s prefix-pattern))
-         suggestions (a.filter prefix-filter all-completions)]
-     (opts.cb suggestions)))
+  (if (completions-enabled?)
+    (let [all-completions (cmpl.get-completions)
+          prefix-pattern (.. "^" (. opts :prefix))
+          prefix-filter (fn [s] (string.match s prefix-pattern))
+          suggestions (a.filter prefix-filter all-completions)]
+      (opts.cb suggestions))
+    (opts.cb [])))
 
 {: buf-suffix
  : comment-prefix
