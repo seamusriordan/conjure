@@ -6,8 +6,9 @@ local a = autoload("conjure.nfnl.core")
 local scheme_dict = autoload("conjure.client.scheme.dict")
 local util = autoload("conjure.util")
 local tsc = autoload("conjure.tree-sitter-completions")
+local res = autoload("conjure.resources")
 local M = define("conjure.client.guile.completions")
-M["guile-repl-completion-code"] = "(use-modules ((ice-9 readline) \n      #:select (apropos-completion-function)\n      #:prefix %conjure:))\n  (define* (%conjure:get-guile-completions prefix #:optional (continued #f))\n      (let ((suggestion (%conjure:apropos-completion-function prefix continued)))\n        (if (not suggestion)\n          '()\n          (cons suggestion (%conjure:get-guile-completions prefix #t)))))"
+M["guile-repl-completion-code"] = res["get-resource-contents"]("client/guile/completion.scm")
 M["build-completion-request"] = function(prefix)
   return ("(%conjure:get-guile-completions " .. a["pr-str"](prefix) .. ")")
 end
