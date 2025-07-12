@@ -154,6 +154,3 @@
               (swank.disconnect)
 
               (assert.same ["dots" "dotimes"] (. completion-cb-calls 1)))))))))
-
-
-
