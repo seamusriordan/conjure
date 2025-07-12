@@ -1,10 +1,13 @@
-(local {: describe : it : spy} (require :plenary.busted))
+(local {: describe : it : spy : before_each} (require :plenary.busted))
 (local assert (require :luassert.assert))
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
 (local mock-socket (require :conjure-spec.client.guile.mock-socket))
 (local mock-tsc (require :conjure-spec.mock-tree-sitter-completions))
 (require :conjure-spec.assertions)
+
+(tset package.loaded "conjure.remote.socket" mock-socket)
+(tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
 
@@ -14,8 +17,6 @@
 
 (describe "conjure.client.guile.socket"
   (fn []
-    (tset package.loaded "conjure.remote.socket" mock-socket)
-    (tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
     (describe "context extraction"
       (fn [] 
         (it "returns nil for hello world"
@@ -127,9 +128,12 @@
 
     (describe "completions"
       (fn [] 
-        (config.merge {:client {:guile {:socket
-                         {:pipename "fake-pipe" :host_port nil}}}}
-                      {:overwrite? true})
+        (before_each 
+          (fn []
+            (config.merge {:client {:guile {:socket
+                             {:pipename "fake-pipe" :host_port nil}}}}
+                          {:overwrite? true})))
+
         (it "Does not execute completions in REPL when not connected"
             (fn []
               (let [
