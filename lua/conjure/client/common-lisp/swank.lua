@@ -36,7 +36,7 @@ local function context(_code)
   end
   return iterate_backwards(_4_, lines)
 end
-config.merge({client = {common_lisp = {swank = {connection = {default_host = "127.0.0.1", default_port = "4005"}}}}})
+config.merge({client = {common_lisp = {swank = {connection = {default_host = "127.0.0.1", default_port = "4005"}, enable_completions = true}}}})
 if config["get-in"]({"mapping", "enable_defaults"}) then
   config.merge({client = {common_lisp = {swank = {mapping = {connect = "cc", disconnect = "cd"}}}}})
 else
@@ -291,22 +291,26 @@ local function format_for_cmpl(rs)
   return cmpls
 end
 local function completions(opts)
-  local static_completions = cmpl["get-static-completions"]()
-  if connected_3f() then
-    local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
-    local result_fn
-    local function _41_(results)
-      local parsed_results = format_for_cmpl(results)
-      local cmpl_list = util["concat-nodup"](static_completions, parsed_results)
-      return opts.cb(cmpl_list)
+  if config["get-in"]({"client", "common_lisp", "swank", "enable_completions"}) then
+    local static_completions = cmpl["get-static-completions"]()
+    if connected_3f() then
+      local code = ("(swank:simple-completions " .. a["pr-str"](opts.prefix) .. " " .. a["pr-str"](opts.context) .. ")")
+      local result_fn
+      local function _41_(results)
+        local parsed_results = format_for_cmpl(results)
+        local cmpl_list = util["concat-nodup"](static_completions, parsed_results)
+        return opts.cb(cmpl_list)
+      end
+      result_fn = _41_
+      a.assoc(opts, "code", code)
+      a.assoc(opts, "on-result", result_fn)
+      a.assoc(opts, "passive?", true)
+      return eval_str(opts)
+    else
+      return opts.cb(static_completions)
     end
-    result_fn = _41_
-    a.assoc(opts, "code", code)
-    a.assoc(opts, "on-result", result_fn)
-    a.assoc(opts, "passive?", true)
-    return eval_str(opts)
   else
-    return opts.cb(static_completions)
+    return opts.cb({})
   end
 end
 return {["buf-suffix"] = buf_suffix, ["comment-prefix"] = comment_prefix, ["form-node?"] = form_node_3f, context = context, disconnect = disconnect, connect = connect, ["parse-result"] = parse_result, ["eval-str"] = eval_str, ["doc-str"] = doc_str, ["eval-file"] = eval_file, ["on-filetype"] = on_filetype, ["on-load"] = on_load, ["on-exit"] = on_exit, completions = completions}

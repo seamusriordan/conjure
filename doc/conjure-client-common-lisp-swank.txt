@@ -67,4 +67,14 @@ All configuration can be set as described in |conjure-configuration|.
             The default swank port to connect to.
             Default: `"4005"`
 
+                            *g:conjure#client#common_lisp#swank#enable_completions*
+`g:conjure#client#guile#socket#enable_completions`
+            Enable completion suggestions through tree sitter and via swank
+            simple-completions.
+
+            Example value:
+                     `false`
+
+            Default: `true`
+
 vim:tw=78:sw=2:ts=2:ft=help:norl:et:listchars=
