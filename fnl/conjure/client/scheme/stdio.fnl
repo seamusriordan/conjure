@@ -154,7 +154,7 @@
   (stop))
 
 (fn completions-enabled? []
-  (config.get-in [:client :scheme :stdio :enable_completions]))
+  (cfg [:enable_completions]))
 
 (fn completions [opts]
   ;(when (not= nil opts)

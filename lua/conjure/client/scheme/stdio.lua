@@ -127,7 +127,7 @@ local function on_exit()
   return stop()
 end
 local function completions_enabled_3f()
-  return config["get-in"]({"client", "scheme", "stdio", "enable_completions"})
+  return cfg({"enable_completions"})
 end
 local function completions(opts)
   if completions_enabled_3f() then
