@@ -282,6 +282,7 @@ local function _2_()
         return table.insert(callback_results, result)
       end
       mock_callback = _44_
+      mock_tsc["set-mock-completions"]({})
       mock_socket["set-mock-repl"](mock_repl)
       guile.connect({})
       set_repl_connected(mock_repl)

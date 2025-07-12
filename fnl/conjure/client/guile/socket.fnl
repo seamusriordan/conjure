@@ -249,11 +249,8 @@
     {:desc "Disconnect from the REPL"}))
 
 (fn generate-completions [opts]
-   (let [static-completions (cmpl.get-static-completions)
-         prefix-pattern (.. "^" (. opts :prefix))
-         prefix-filter (fn [s] (string.match s prefix-pattern))
-         static-suggestions (a.filter prefix-filter static-completions)]
-
+   (let [prefix (. opts :prefix)
+         static-suggestions (cmpl.get-static-completions prefix)]
      (if (connected?)
        (let [code (cmpl.build-completion-request opts.prefix)
              result-fn 

@@ -274,22 +274,16 @@ M["on-filetype"] = function()
   return mapping.buf("GuileDisconnect", cfg({"mapping", "disconnect"}), _40_, {desc = "Disconnect from the REPL"})
 end
 local function generate_completions(opts)
-  local static_completions = cmpl["get-static-completions"]()
-  local prefix_pattern = ("^" .. opts.prefix)
-  local prefix_filter
-  local function _41_(s)
-    return string.match(s, prefix_pattern)
-  end
-  prefix_filter = _41_
-  local static_suggestions = a.filter(prefix_filter, static_completions)
+  local prefix = opts.prefix
+  local static_suggestions = cmpl["get-static-completions"](prefix)
   if connected_3f() then
     local code = cmpl["build-completion-request"](opts.prefix)
     local result_fn
-    local function _42_(results)
+    local function _41_(results)
       local cmpl_list = cmpl["format-results"](results)
       return opts.cb(util["concat-nodup"](static_suggestions, cmpl_list))
     end
-    result_fn = _42_
+    result_fn = _41_
     a.assoc(opts, "code", code)
     a.assoc(opts, "on-result", result_fn)
     a.assoc(opts, "passive?", true)

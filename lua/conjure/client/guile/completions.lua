@@ -31,7 +31,15 @@ M["format-results"] = function(rs)
   table.insert(cmpls, 1, last)
   return cmpls
 end
-M["get-static-completions"] = function()
-  return util["concat-nodup"](tsc["get-completions-at-cursor"]("scheme", "scheme"), scheme_dict["get-dict"]("guile"))
+M["get-static-completions"] = function(prefix)
+  local dict = scheme_dict["get-dict"]("guile")
+  local prefix_pattern = ("^" .. string.gsub(prefix, "%%", "%"))
+  local prefix_filter
+  local function _3_(s)
+    return string.match(s, prefix_pattern)
+  end
+  prefix_filter = _3_
+  local dict_suggestions = a.filter(prefix_filter, dict)
+  return util["concat-nodup"](tsc["get-completions-at-cursor"]("scheme", "scheme"), dict_suggestions)
 end
 return M

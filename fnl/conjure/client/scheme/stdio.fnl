@@ -163,10 +163,8 @@
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
   (if (completions-enabled?)
-    (let [all-completions (cmpl.get-completions)
-          prefix-pattern (.. "^" (. opts :prefix))
-          prefix-filter (fn [s] (string.match s prefix-pattern))
-          suggestions (a.filter prefix-filter all-completions)]
+    (let [prefix (. opts :prefix)
+          suggestions (cmpl.get-completions prefix)]
       (opts.cb suggestions))
     (opts.cb [])))
 

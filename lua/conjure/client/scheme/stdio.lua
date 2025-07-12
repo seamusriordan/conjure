@@ -133,14 +133,8 @@ local function completions_enabled_3f()
 end
 M.completions = function(opts)
   if completions_enabled_3f() then
-    local all_completions = cmpl["get-completions"]()
-    local prefix_pattern = ("^" .. opts.prefix)
-    local prefix_filter
-    local function _20_(s)
-      return string.match(s, prefix_pattern)
-    end
-    prefix_filter = _20_
-    local suggestions = a.filter(prefix_filter, all_completions)
+    local prefix = opts.prefix
+    local suggestions = cmpl["get-completions"](prefix)
     return opts.cb(suggestions)
   else
     return opts.cb({})

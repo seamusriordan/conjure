@@ -232,6 +232,7 @@
                     mock-repl (mock-socket.build-mock-repl spy-send)
                     callback-results  []
                     mock-callback (fn [result] (table.insert callback-results result))]
+                (mock-tsc.set-mock-completions [])
                 (mock-socket.set-mock-repl mock-repl)
 
                 (guile.connect {})

@@ -1,7 +1,7 @@
 (local {: autoload : define} (require :conjure.nfnl.module))
+(local a (autoload :conjure.nfnl.core))
 (local dict (autoload :conjure.client.scheme.dict))
 (local config (autoload :conjure.config))
-(local dict (autoload :conjure.client.scheme.dict))
 (local util (autoload :conjure.util))
 (local tsc (autoload :conjure.tree-sitter-completions))
 
@@ -15,12 +15,15 @@
     (string.match command "csi") :chicken
     :default))
 
-(fn M.get-completions []
+(fn M.get-completions [prefix]
   (let [stdio-command (config.get-in [:client :scheme :stdio :command])
         dict-key (get-dict-key-from-stdio-command stdio-command)
-        built-in-symbols (dict.get-dict dict-key) ]
+        dict (dict.get-dict dict-key) 
+        prefix-pattern (.. "^" (string.gsub prefix "%%" "%"))
+        prefix-filter (fn [s] (string.match s prefix-pattern))
+        dict-suggestions (a.filter prefix-filter dict)]
     (util.concat-nodup
       (tsc.get-completions-at-cursor :scheme :scheme)
-      built-in-symbols)))
+      dict-suggestions)))
 
 M

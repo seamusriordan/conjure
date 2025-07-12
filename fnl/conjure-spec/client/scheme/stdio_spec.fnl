@@ -25,7 +25,7 @@
 
               (assert.same ["delay"] (. completion-results 1)))))
 
-        (it "returns delta for prefix delt when treesitter completion delta and other"
+        (it "returns delta other for prefix delt when treesitter completion delta and other"
           (fn []
             (let [completion-results []
                   completion-callback 
@@ -36,7 +36,7 @@
                 {:prefix "delt"
                  :cb completion-callback})
 
-              (assert.same ["delta"] (. completion-results 1)))))
+              (assert.same ["delta" "other"] (. completion-results 1)))))
 
         (it "returns delay-more and delay for prefix dela when treesitter completion delay-more"
           (fn []
