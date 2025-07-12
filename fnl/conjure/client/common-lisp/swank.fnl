@@ -305,36 +305,45 @@
 (fn on-exit []
   (disconnect))
 
+(fn build-completions-code 
+  [prefix context]
+  (.. "(swank:simple-completions " (a.pr-str prefix) " " (a.pr-str context) ")"))
+
 (fn format-for-cmpl
   [rs]
   (let [cmpls (parse-separated-list rs)]
-    (table.remove cmpls) ; last result appears to be the prefix sent?
+    (table.remove cmpls) ; last result is prefix
     cmpls))
 
 ;; completions - partially copied from client/fennel/aniseed.fnl.
+(fn build-completions [opts]
+ (let [static-completions (cmpl.get-static-completions)]
+   (if (connected?) 
+     (let [code (build-completions-code opts.prefix opts.context)
+           result-fn
+           (fn [results]
+             (let [parsed-results (format-for-cmpl results)
+                   cmpl-list (util.concat-nodup static-completions parsed-results)]
+               ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
+               ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
+               (opts.cb cmpl-list) ; return the list of completions
+               ))
+           ]
+       (a.assoc opts :code code)
+       (a.assoc opts :on-result result-fn)
+       (a.assoc opts :passive? true)
+       (eval-str opts))
+     (opts.cb static-completions))))
+
+(fn completions-enabled? []
+  (config.get-in [:client :common_lisp :swank :enable_completions]))
+
 (fn completions [opts]
   ;(when (not= nil opts)
   ;  (log.append [(.. "; completions() called with: " (a.pr-str opts))] {:break? true}))
-  (if (config.get-in [:client :common_lisp :swank :enable_completions])
-    (let [static-completions (cmpl.get-static-completions)]
-      (if (connected?) 
-        (let [code (.. "(swank:simple-completions " (a.pr-str opts.prefix) " " (a.pr-str opts.context) ")")
-              result-fn
-              (fn [results]
-                (let [parsed-results (format-for-cmpl results)
-                      cmpl-list (util.concat-nodup static-completions parsed-results)]
-                  ;(log.append [(.. "; in completions()'s result-fn, called with: " (a.pr-str results))] )
-                  ;(log.append [(..  "; in completions()'s result-fn, calling opts.cb with " (a.pr-str cmpl-list))])
-                  (opts.cb cmpl-list) ; return the list of completions
-                  ))
-              ]
-          (a.assoc opts :code code)
-          (a.assoc opts :on-result result-fn)
-          (a.assoc opts :passive? true)
-          (eval-str opts))
-        (opts.cb static-completions)))
-    (opts.cb [])
-    ))
+  (if (completions-enabled?)
+    (build-completions opts)
+    (opts.cb [])))
 
 {: buf-suffix
  : comment-prefix
