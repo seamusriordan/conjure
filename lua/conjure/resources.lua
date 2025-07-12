@@ -7,7 +7,7 @@ local M = define("conjure.resources")
 local resource_prefix = "res/"
 local cache = {}
 local function read_and_cache_file_contents(path)
-  log.dbg({(path .. " query not cached - reading")})
+  log.dbg({(path .. " resource not cached - reading")})
   local file = io.open(path, "r")
   local content
   if (nil == file) then

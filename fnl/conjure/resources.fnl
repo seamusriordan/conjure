@@ -8,7 +8,7 @@
 (var cache {})
 
 (fn read-and-cache-file-contents [path]
-  (log.dbg [(.. path " query not cached - reading")])
+  (log.dbg [(.. path " resource not cached - reading")])
   (let [file (io.open path "r")
         content (if (= nil file) nil (file:read "*all"))]
     (when (not= nil file)
