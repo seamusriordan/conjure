@@ -21,4 +21,34 @@ local function _5_()
   end
   return it("escapes sequences like <C-o>", _6_)
 end
-return describe("replace-termcodes", _5_)
+describe("replace-termcodes", _5_)
+local function _7_()
+  local function _8_()
+    return assert.same({"a", "b"}, util["concat-nodup"]({"a"}, {"b"}))
+  end
+  it("concats arrays [:a] and [:b] together", _8_)
+  local function _9_()
+    return assert.same({"a"}, util["concat-nodup"]({"a"}, {"a"}))
+  end
+  it("concats arrays [:a] and [:a] together to get [:a]", _9_)
+  local function _10_()
+    return assert.same({"a", "b", "c"}, util["concat-nodup"]({"a", "b"}, {"c", "a"}))
+  end
+  return it("concats arrays [:a :b] and [:c :a] together to get [:a :b :c]", _10_)
+end
+describe("concat-nodup", _7_)
+local function _11_()
+  local function _12_()
+    return assert.same({"a"}, util.dedup({"a"}))
+  end
+  it("dedup array [:a] gives [:a]", _12_)
+  local function _13_()
+    return assert.same({"a", "b"}, util.dedup({"a", "b", "b"}))
+  end
+  it("dedup array [:a :b :b] gives [:a :b]", _13_)
+  local function _14_()
+    return assert.same({"a", "b", "c"}, util.dedup({"a", "b", "c", "b", "a", "c"}))
+  end
+  return it("dedup array [:a :b :c :b :a :c] gives [:a :b :c]", _14_)
+end
+return describe("dedup", _11_)
