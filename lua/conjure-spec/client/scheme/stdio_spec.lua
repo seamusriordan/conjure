@@ -7,7 +7,9 @@ local assert = require("luassert.assert")
 local stdio = require("conjure.client.scheme.stdio")
 local config = require("conjure.config")
 local mock_tsc = require("conjure-spec.mock-tree-sitter-completions")
+local mock_log = require("conjure-spec.mock-log")
 package.loaded["conjure.tree-sitter-completions"] = mock_tsc
+package.loaded["conjure.log"] = mock_log
 local function _2_()
   local function _3_()
     local function _4_()

@@ -3,8 +3,10 @@
 (local stdio (require :conjure.client.scheme.stdio))
 (local config (require :conjure.config))
 (local mock-tsc (require :conjure-spec.mock-tree-sitter-completions))
+(local mock-log (require :conjure-spec.mock-log))
 
 (tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
+(tset package.loaded "conjure.log" mock-log)
 
 (describe "conjure.client.scheme.stdio"
   (fn []

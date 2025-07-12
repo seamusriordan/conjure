@@ -7,9 +7,11 @@
 
 (local mock-tsc (require :conjure-spec.mock-tree-sitter-completions))
 (local mock-remote (require :conjure-spec.remote.mock-swank))
+(local mock-log (require :conjure-spec.mock-log))
 
 (tset package.loaded "conjure.remote.swank" mock-remote)
 (tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
+(tset package.loaded "conjure.log" mock-log)
 
 (fn format-swank-return [output]
   (let [formatted-output (string.sub (a.pr-str output) 2 -2)]

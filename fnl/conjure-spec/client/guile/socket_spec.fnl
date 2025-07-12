@@ -2,12 +2,15 @@
 (local assert (require :luassert.assert))
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
+(require :conjure-spec.assertions)
+
 (local mock-socket (require :conjure-spec.client.guile.mock-socket))
 (local mock-tsc (require :conjure-spec.mock-tree-sitter-completions))
-(require :conjure-spec.assertions)
+(local mock-log (require :conjure-spec.mock-log))
 
 (tset package.loaded "conjure.remote.socket" mock-socket)
 (tset package.loaded "conjure.tree-sitter-completions" mock-tsc)
+(tset package.loaded "conjure.log" mock-log)
 
 (local completion-code-define-match "%(define%* %(%%conjure:get%-guile%-completions")
 

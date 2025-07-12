@@ -7,11 +7,13 @@ local before_each = _local_1_["before_each"]
 local assert = require("luassert.assert")
 local guile = require("conjure.client.guile.socket")
 local config = require("conjure.config")
+require("conjure-spec.assertions")
 local mock_socket = require("conjure-spec.client.guile.mock-socket")
 local mock_tsc = require("conjure-spec.mock-tree-sitter-completions")
-require("conjure-spec.assertions")
+local mock_log = require("conjure-spec.mock-log")
 package.loaded["conjure.remote.socket"] = mock_socket
 package.loaded["conjure.tree-sitter-completions"] = mock_tsc
+package.loaded["conjure.log"] = mock_log
 local completion_code_define_match = "%(define%* %(%%conjure:get%-guile%-completions"
 local function set_repl_connected(repl)
   repl["status"] = "connected"

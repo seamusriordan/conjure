@@ -11,8 +11,10 @@ local config = require("conjure.config")
 require("conjure-spec.assertions")
 local mock_tsc = require("conjure-spec.mock-tree-sitter-completions")
 local mock_remote = require("conjure-spec.remote.mock-swank")
+local mock_log = require("conjure-spec.mock-log")
 package.loaded["conjure.remote.swank"] = mock_remote
 package.loaded["conjure.tree-sitter-completions"] = mock_tsc
+package.loaded["conjure.log"] = mock_log
 local function format_swank_return(output)
   local formatted_output = string.sub(a["pr-str"](output), 2, -2)
   return string.format("(:return (:ok (\"\" \"(%s)\")) 0)", formatted_output)
