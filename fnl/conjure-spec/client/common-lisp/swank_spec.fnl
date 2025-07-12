@@ -1,4 +1,4 @@
-(local {: describe : it : spy : before_each} (require :plenary.busted))
+(local {: describe : it : before_each} (require :plenary.busted))
 (local a (require :conjure.nfnl.core))
 (local assert (require :luassert.assert))
 (local swank (require :conjure.client.common-lisp.swank))

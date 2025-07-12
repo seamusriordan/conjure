@@ -1,4 +1,4 @@
-(local {: describe : it : spy} (require :plenary.busted))
+(local {: describe : it } (require :plenary.busted))
 (local assert (require :luassert.assert))
 (local stdio (require :conjure.client.scheme.stdio))
 (local config (require :conjure.config))

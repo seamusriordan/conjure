@@ -2,7 +2,6 @@
 local _local_1_ = require("plenary.busted")
 local describe = _local_1_["describe"]
 local it = _local_1_["it"]
-local spy = _local_1_["spy"]
 local assert = require("luassert.assert")
 local stdio = require("conjure.client.scheme.stdio")
 local config = require("conjure.config")

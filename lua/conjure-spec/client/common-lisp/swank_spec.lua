@@ -2,7 +2,6 @@
 local _local_1_ = require("plenary.busted")
 local describe = _local_1_["describe"]
 local it = _local_1_["it"]
-local spy = _local_1_["spy"]
 local before_each = _local_1_["before_each"]
 local a = require("conjure.nfnl.core")
 local assert = require("luassert.assert")

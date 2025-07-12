@@ -1,4 +1,4 @@
-(local {: describe : it : spy : before_each} (require :plenary.busted))
+(local {: describe : it : before_each} (require :plenary.busted))
 (local assert (require :luassert.assert))
 (local guile (require :conjure.client.guile.socket))
 (local config (require :conjure.config))
