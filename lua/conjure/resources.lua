@@ -11,7 +11,7 @@ local function read_and_cache_file_contents(path)
   local file = io.open(path, "r")
   local content
   if (nil == file) then
-    content = ""
+    content = nil
   else
     content = file:read("*all")
   end

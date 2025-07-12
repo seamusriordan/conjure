@@ -9,14 +9,41 @@ local res = autoload("conjure.resources")
 local M = define("conjure.tree-sitter-completions")
 local symbol_query_path_template = "queries/%s/cmpl.scm"
 local query_cache = {}
+local function build_completion_query(ts_lang, cmpl_resource)
+  local query_path = string.format(symbol_query_path_template, cmpl_resource)
+  local query_text = res["get-resource-contents"](query_path)
+  if query_text then
+    return vim.treesitter.query.parse(ts_lang, query_text)
+  else
+    return nil
+  end
+end
+local function get_cached_completion_query(cmpl_resource)
+  local cached_query = query_cache[cmpl_resource]
+  if cached_query then
+    return cached_query
+  else
+    return nil
+  end
+end
+local function get_completion_query(ts_lang, cmpl_resource)
+  local cached_query = get_cached_completion_query(cmpl_resource)
+  if cached_query then
+    return cached_query
+  else
+    local query = build_completion_query(ts_lang, cmpl_resource)
+    query_cache[cmpl_resource] = query
+    return query
+  end
+end
 local function contains_node(nodes, n)
   if (nil == n) then
     return false
   else
-    local function _2_(_241)
+    local function _5_(_241)
       return n:equal(_241)
     end
-    return a.some(_2_, nodes)
+    return a.some(_5_, nodes)
   end
 end
 local function get_scope_parent(node, scopes)
@@ -91,33 +118,6 @@ local function get_completions_for_query(query)
     end
   end
   return util.dedup(results)
-end
-local function build_completion_query(ts_lang, cmpl_resource)
-  local query_path = string.format(symbol_query_path_template, cmpl_resource)
-  local query_text = res["get-resource-contents"](query_path)
-  if query_text then
-    return vim.treesitter.query.parse(ts_lang, query_text)
-  else
-    return nil
-  end
-end
-local function get_cached_completion_query(cmpl_resource)
-  local cached_query = query_cache[cmpl_resource]
-  if cached_query then
-    return cached_query
-  else
-    return nil
-  end
-end
-local function get_completion_query(ts_lang, cmpl_resource)
-  local cached_query = get_cached_completion_query(cmpl_resource)
-  if cached_query then
-    return cached_query
-  else
-    local query = build_completion_query(ts_lang, cmpl_resource)
-    query_cache[cmpl_resource] = query
-    return query
-  end
 end
 M["get-completions-at-cursor"] = function(ts_lang, cmpl_resource)
   local query = get_completion_query(ts_lang, cmpl_resource)

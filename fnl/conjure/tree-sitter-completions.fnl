@@ -10,6 +10,27 @@
 
 (local query-cache {})
 
+(fn build-completion-query [ts-lang cmpl-resource]
+  (let [query-path (string.format symbol-query-path-template cmpl-resource)
+        query-text (res.get-resource-contents query-path) ]
+    (if query-text
+      (vim.treesitter.query.parse ts-lang query-text)
+      nil)))
+
+(fn get-cached-completion-query [cmpl-resource]
+  (let [cached-query (. query-cache cmpl-resource)]
+    (if cached-query
+      cached-query
+      nil)))
+
+(fn get-completion-query [ts-lang cmpl-resource]
+  (let [cached-query (get-cached-completion-query cmpl-resource)]
+    (if cached-query
+      cached-query
+      (let [query (build-completion-query ts-lang cmpl-resource)]
+        (tset query-cache cmpl-resource query)
+        query))))
+
 (fn contains-node [nodes n]
   (if (= nil n)
       false
@@ -82,28 +103,15 @@
 
     (util.dedup results)))
 
-(fn build-completion-query [ts-lang cmpl-resource]
-  (let [query-path (string.format symbol-query-path-template cmpl-resource)
-        query-text (res.get-resource-contents query-path) ]
-    (if query-text
-      (vim.treesitter.query.parse ts-lang query-text)
-      nil)))
-
-(fn get-cached-completion-query [cmpl-resource]
-  (let [cached-query (. query-cache cmpl-resource)]
-    (if cached-query
-      cached-query
-      nil)))
-
-(fn get-completion-query [ts-lang cmpl-resource]
-  (let [cached-query (get-cached-completion-query cmpl-resource)]
-    (if cached-query
-      cached-query
-      (let [query (build-completion-query ts-lang cmpl-resource)]
-        (tset query-cache cmpl-resource query)
-        query))))
-
 (fn M.get-completions-at-cursor [ts-lang cmpl-resource]
+  "Use tree-sitter query to find completions in scope at cursor
+
+  Arguments:
+  - ts-lang: tree-sitter grammar language
+  - cmpl-resource: query file resource path (queries/<cmpl-resource>/cmpl.scm)
+  
+  Returns:
+  - deduplicated array of strings"
   (let [query (get-completion-query ts-lang cmpl-resource)]
     (if query
       (get-completions-for-query query)
