@@ -83,18 +83,18 @@
   ;; To avoid getting an invalid node when calling M.get-completions-at-cursor, ensure
   ;; that the buffer is parsed.
   ;; See the note for `:he treesitter.get_node` and `:he languagetree`.
-  (ts.parse!)
-  (let [buffer         (vim.api.nvim_get_current_buf)
-        cursor-node    (vim.treesitter.get_node)
-        (row _)        (unpack (vim.api.nvim_win_get_cursor 0))
-        scope-captures (query:iter_captures (cursor-node:root) buffer 0 row)
-        scopes         (extract-scopes query scope-captures)
-        captures       (query:iter_captures (cursor-node:root) buffer 0 row)
-        results        []]
+  (if (not= nil (ts.parse!))
+    (let [buffer         (vim.api.nvim_get_current_buf)
+          cursor-node    (vim.treesitter.get_node)
+          (row _)        (unpack (vim.api.nvim_win_get_cursor 0))
+          scope-captures (query:iter_captures (cursor-node:root) buffer 0 row)
+          scopes         (extract-scopes query scope-captures)
+          captures       (query:iter_captures (cursor-node:root) buffer 0 row)
+          results        []]
 
-    (each [id n meta captures]
-      (let [captured-label (. query.captures id)]
-        (if (= :global.define captured-label)
+      (each [id n meta captures]
+        (let [captured-label (. query.captures id)]
+          (if (= :global.define captured-label)
             (table.insert results (get-node-text n buffer meta))
 
             (and (= :local.bind captured-label)
@@ -107,7 +107,8 @@
                  (is-in-scope cursor-node (get-nth-scope-parent 2 n scopes)))
             (table.insert results (get-node-text n buffer meta)))))
 
-    (util.ordered-distinct results)))
+      (util.ordered-distinct results))
+    []))
 
 (fn M.get-completions-at-cursor [ts-lang cmpl-resource]
   "Use tree-sitter query to find completions in scope at cursor
